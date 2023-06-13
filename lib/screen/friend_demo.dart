@@ -13,15 +13,12 @@ class Friend extends StatefulWidget {
 class _FriendState extends State<Friend> {
   final _usernameController = TextEditingController();
   List<String> _usernames = [];
-  List<Map<String, dynamic>> _friendList = [];
-
   late String currentUserID;
 
   @override
   void initState() {
     super.initState();
     getCurrentUser();
-    getFriendList();
   }
 
   Future<void> getCurrentUser() async {
@@ -45,10 +42,13 @@ class _FriendState extends State<Friend> {
 
   Future<void> requestFriendship(String username) async {
     final currentUser = FirebaseAuth.instance.currentUser;
-    final currentUserEmail = currentUser?.email;
-    final currentUserUsername = currentUser?.displayName ?? '';
+    final currentUserID =
+        currentUser?.email; // Use the current user's email as the ID
+    final currentUserUsername =
+        currentUser?.displayName ?? ''; // Use the current user's username
 
     setState(() {
+      // Show a loading indicator while the request is being processed
       _usernames = ['Loading...'];
     });
 
@@ -60,50 +60,32 @@ class _FriendState extends State<Friend> {
 
       if (recipientQuery.docs.isNotEmpty) {
         final recipientDoc = recipientQuery.docs.first;
-        final recipientEmail = recipientDoc['email'];
+        final recipientID = recipientDoc.id;
 
         final recipientRef =
-            FirebaseFirestore.instance.collection('users').doc(recipientEmail);
+            FirebaseFirestore.instance.collection('users').doc(recipientID);
         await recipientRef.update({
           'friendRequests': FieldValue.arrayUnion([
             {
-              'userID': currentUserEmail,
+              'userID': currentUserID,
               'senderUsername': currentUserUsername,
-              'receiverEmail': recipientEmail,
+              // Add any other user information you want to store in the friend request
             }
           ])
         });
       }
 
       setState(() {
+        // Clear the loading indicator and update the list of usernames
         _usernames = [];
       });
     } catch (error) {
       print('Error requesting friendship: $error');
+
       setState(() {
+        // Show an error message in the list of usernames
         _usernames = ['Error: Failed to send request'];
       });
-    }
-  }
-
-  Future<void> getFriendList() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final currentUserEmail = currentUser?.email;
-
-    final userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(currentUserEmail)
-        .get();
-
-    if (userDoc.exists) {
-      final data = userDoc.data();
-      if (data != null && data.containsKey('friendLists')) {
-        final friendList = data['friendLists'] as List<dynamic>;
-
-        setState(() {
-          _friendList = friendList.cast<Map<String, dynamic>>();
-        });
-      }
     }
   }
 
@@ -117,45 +99,7 @@ class _FriendState extends State<Friend> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: appbar(),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            alignment: Alignment.center,
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              'FWIENDS',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black, // Set text color to black
-                fontStyle: FontStyle.italic, // Set font style to italic
-                fontFamily: 'Math Sans', // Set custom font
-              ),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _friendList.length,
-              itemBuilder: (context, index) {
-                final friend = _friendList[index];
-
-                return Card(
-                  child: ListTile(
-                    title: Text(friend['friendName'] ?? ''),
-                    trailing: IconButton(
-                      icon: Icon(Icons.chat),
-                      onPressed: () {
-                        // Perform the action when the chat icon button is pressed
-                      },
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+      body: Container(),
       endDrawer: Drawer(
         child: SingleChildScrollView(
           child: Column(
@@ -165,7 +109,7 @@ class _FriendState extends State<Friend> {
                 usernames: _usernames,
                 onUsernameChanged: searchUsername,
                 onFriendRequest: requestFriendship,
-                currentUserID: currentUserID.isNotEmpty ? currentUserID : '',
+                currentUserID: currentUserID,
               ),
             ],
           ),
@@ -258,6 +202,87 @@ class MyDrawerList extends StatelessWidget {
               );
             },
           ),
+          SizedBox(height: 20),
+          Text(
+            'Friend Requests',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .where('friendRequests.senderUsername',
+                    isEqualTo: currentUserID)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              }
+
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              }
+
+              final userDocuments = snapshot.data?.docs;
+
+              if (userDocuments == null || userDocuments.isEmpty) {
+                return Text('No friend requests');
+              }
+
+              final friendRequests = userDocuments
+                  .map((doc) => doc['friendRequests'] as List<dynamic>)
+                  .expand((requests) => requests)
+                  .toList();
+
+              if (friendRequests.isEmpty) {
+                return Text('No friend requests');
+              }
+
+              return ListView.builder(
+                shrinkWrap: true,
+                itemCount: friendRequests.length,
+                itemBuilder: (context, index) {
+                  final request = friendRequests[index] as Map<String, dynamic>;
+                  final senderUsername = request['senderUsername'] as String?;
+
+                  // Check if senderUsername is null before using it
+                  if (senderUsername == null) {
+                    return Text('Error: Sender username not found');
+                  }
+
+                  return ListTile(
+                    title: Text(senderUsername),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            // Accept friend request
+                            // Implement the logic to accept the friend request
+                            // For example, you can update the user's friend list
+                            // and remove the request from the friendRequests field
+
+                            // After accepting, you may want to update the UI to reflect the change
+                          },
+                          child: Text('Accept'),
+                        ),
+                        SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            // Reject friend request
+                            // Implement the logic to reject the friend request
+                            // For example, you can remove the request from the friendRequests field
+
+                            // After rejecting, you may want to update the UI to reflect the change
+                          },
+                          child: Text('Reject'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          )
         ],
       ),
     );
