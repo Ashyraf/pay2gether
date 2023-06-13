@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1064386926744",
+    "project_id": "pay2gether-7667a",
+    "storage_bucket": "pay2gether-7667a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1064386926744:android:8398673304d5dd2dbb98ed",
+        "android_client_info": {
+          "package_name": "com.example.pay2gether"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1064386926744-8ilap2jo3u1ep7eriu9765mgf8tel3c8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzE_LbwHQV5uacDn9o8OCaQi968bqGWXQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1064386926744-8ilap2jo3u1ep7eriu9765mgf8tel3c8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
