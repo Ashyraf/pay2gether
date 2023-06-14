@@ -71,15 +71,7 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             SizedBox(height: 16),
-            ElevatedButton(
-              child: Text("Create a Room"),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => RoomPage()),
-                );
-              },
-            ),
+            RoomPage.createRoomButton(context),
           ],
         ),
       ),
