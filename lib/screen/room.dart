@@ -81,13 +81,22 @@ class AddPeopleForm extends StatefulWidget {
 class _AddPeopleFormState extends State<AddPeopleForm> {
   User? currentUser;
   List<Map<String, dynamic>> _friendList = [];
-  List<String> selectedFriends = [];
+  List<Map<String, dynamic>> selectedFriends = [];
+  Map<String, dynamic>? selectedFriendWithDebt;
+
+  final TextEditingController _debtAmountController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     getCurrentUser();
     getFriendList();
+  }
+
+  @override
+  void dispose() {
+    _debtAmountController.dispose();
+    super.dispose();
   }
 
   void getCurrentUser() {
@@ -119,11 +128,19 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
     }
   }
 
+  void addFriendWithDebt() {
+    if (selectedFriendWithDebt != null) {
+      selectedFriends.add(selectedFriendWithDebt!);
+      selectedFriendWithDebt = null;
+      _debtAmountController.clear();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Container(
-        width: double.infinity, // Set a specific width constraint
+        width: double.infinity,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -131,24 +148,75 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
             SizedBox(height: 8),
             if (_friendList.isNotEmpty)
               SizedBox(
-                width: 300, // Adjust the width as needed
-                height: 200, // Adjust the height as needed
+                width: 300,
+                height: 200,
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: _friendList.length,
                   itemBuilder: (context, index) {
                     final friend = _friendList[index];
+                    final friendName = friend['friendName'];
+                    double debtAmount = friend['debtAmount'] ?? 0.0;
 
                     return Card(
                       child: ListTile(
-                        title: Text(friend['friendName'] ?? ''),
-                        trailing: IconButton(
-                          icon: Icon(Icons.add),
-                          onPressed: () {
-                            setState(() {
-                              selectedFriends.add(friend['friendName']);
-                            });
-                          },
+                        title: Text(friendName ?? ''),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.add),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    final TextEditingController
+                                        _debtAmountController =
+                                        TextEditingController();
+
+                                    return AlertDialog(
+                                      title: Text('Add Debt Amount'),
+                                      content: TextField(
+                                        controller: _debtAmountController,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          hintText: 'Enter debt amount',
+                                        ),
+                                      ),
+                                      actions: [
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              final String enteredAmount =
+                                                  _debtAmountController.text
+                                                      .trim();
+                                              debtAmount = double.tryParse(
+                                                      enteredAmount) ??
+                                                  0.0;
+                                              if (debtAmount > 0.0) {
+                                                selectedFriends.add({
+                                                  'friendName': friendName,
+                                                  'debtAmount': debtAmount,
+                                                });
+                                              }
+                                              Navigator.pop(context);
+                                            });
+                                          },
+                                          child: Text('Add'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text('Cancel'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -161,7 +229,8 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
               runSpacing: 8,
               children: selectedFriends.map((friend) {
                 return Chip(
-                  label: Text(friend),
+                  label: Text(
+                      '${friend['friendName']} (${friend['debtAmount']} \$)'),
                   deleteIcon: Icon(Icons.clear),
                   onDeleted: () {
                     setState(() {
