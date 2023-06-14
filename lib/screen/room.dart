@@ -317,7 +317,30 @@ class _AddReceiptButtonState extends State<AddReceiptButton> {
             _imageFile!,
             height: 200,
           ),
+          SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _uploadImage,
+            child: Text('Upload Receipt'),
+          ),
+        ],
       ],
+    );
+  }
+}
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Room App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: RoomPage(),
     );
   }
 }
