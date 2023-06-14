@@ -25,6 +25,8 @@ class RoomPage extends StatefulWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    AddReceiptButton(),
+                    SizedBox(height: 16),
                     TextField(
                       decoration: InputDecoration(
                         hintText: 'Room name',
@@ -32,8 +34,6 @@ class RoomPage extends StatefulWidget {
                     ),
                     SizedBox(height: 16),
                     AddPeopleForm(),
-                    SizedBox(height: 16),
-                    AddReceiptButton(),
                   ],
                 ),
               ),
@@ -85,6 +85,7 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
   Map<String, dynamic>? selectedFriendWithDebt;
 
   final TextEditingController _debtAmountController = TextEditingController();
+  double totalDebt = 0.0;
 
   @override
   void initState() {
@@ -130,10 +131,17 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
 
   void addFriendWithDebt() {
     if (selectedFriendWithDebt != null) {
+      selectedFriendWithDebt!['status'] = 'pending';
       selectedFriends.add(selectedFriendWithDebt!);
       selectedFriendWithDebt = null;
       _debtAmountController.clear();
+      calculateTotalDebt();
     }
+  }
+
+  void calculateTotalDebt() {
+    totalDebt =
+        selectedFriends.fold(0.0, (sum, friend) => sum + friend['debtAmount']);
   }
 
   @override
@@ -197,7 +205,9 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
                                                 selectedFriends.add({
                                                   'friendName': friendName,
                                                   'debtAmount': debtAmount,
+                                                  'status': 'pending',
                                                 });
+                                                calculateTotalDebt();
                                               }
                                               Navigator.pop(context);
                                             });
@@ -235,11 +245,14 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
                   onDeleted: () {
                     setState(() {
                       selectedFriends.remove(friend);
+                      calculateTotalDebt();
                     });
                   },
                 );
               }).toList(),
             ),
+            SizedBox(height: 8),
+            Text('Total Debt: $totalDebt \$'),
           ],
         ),
       ),
@@ -311,6 +324,23 @@ class _AddReceiptButtonState extends State<AddReceiptButton> {
           ),
         ],
       ],
+    );
+  }
+}
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Room App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: RoomPage(),
     );
   }
 }
