@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class RoomPage extends StatefulWidget {
   const RoomPage({Key? key}) : super(key: key);
@@ -17,17 +20,22 @@ class RoomPage extends StatefulWidget {
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text('Create a Room'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Room name',
+              content: SingleChildScrollView(
+                // Wrap the content in SingleChildScrollView
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Room name',
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 16),
-                  AddPeopleForm(),
-                ],
+                    SizedBox(height: 16),
+                    AddPeopleForm(),
+                    SizedBox(height: 16),
+                    AddReceiptButton(),
+                  ],
+                ),
               ),
               actions: [
                 ElevatedButton(
@@ -166,6 +174,74 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class AddReceiptButton extends StatefulWidget {
+  @override
+  _AddReceiptButtonState createState() => _AddReceiptButtonState();
+}
+
+class _AddReceiptButtonState extends State<AddReceiptButton> {
+  File? _imageFile;
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.getImage(source: source);
+    if (pickedImage != null) {
+      setState(() {
+        _imageFile = File(pickedImage.path);
+      });
+    }
+  }
+
+  Future<void> _uploadImage() async {
+    if (_imageFile == null) return;
+
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final userId = currentUser?.uid;
+
+    final reference = FirebaseStorage.instance
+        .ref()
+        .child('receipts/$userId/${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+    try {
+      final task = await reference.putFile(_imageFile!);
+      final downloadUrl = await task.ref.getDownloadURL();
+
+      // Perform further actions with the download URL (e.g., save to Firestore)
+      print('Uploaded image URL: $downloadUrl');
+    } catch (error) {
+      print('Error uploading image: $error');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ElevatedButton(
+          onPressed: () => _pickImage(ImageSource.camera),
+          child: Text('Take Photo'),
+        ),
+        ElevatedButton(
+          onPressed: () => _pickImage(ImageSource.gallery),
+          child: Text('Choose from Gallery'),
+        ),
+        if (_imageFile != null) ...[
+          SizedBox(height: 16),
+          Image.file(
+            _imageFile!,
+            height: 200,
+          ),
+          SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _uploadImage,
+            child: Text('Upload Receipt'),
+          ),
+        ],
+      ],
     );
   }
 }
