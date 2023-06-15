@@ -81,7 +81,6 @@ class AddPeopleForm extends StatefulWidget {
 class _AddPeopleFormState extends State<AddPeopleForm> {
   User? currentUser;
   List<Map<String, dynamic>> _friendList = [];
-  List<Map<String, dynamic>> selectedFriends = [];
   Map<String, dynamic>? selectedFriendWithDebt;
 
   final TextEditingController _debtAmountController = TextEditingController();
@@ -303,16 +302,7 @@ class _AddReceiptButtonState extends State<AddReceiptButton> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ElevatedButton(
-          onPressed: () => _pickImage(ImageSource.camera),
-          child: Text('Take Photo'),
-        ),
-        ElevatedButton(
-          onPressed: () => _pickImage(ImageSource.gallery),
-          child: Text('Choose from Gallery'),
-        ),
         if (_imageFile != null) ...[
-          SizedBox(height: 16),
           Image.file(
             _imageFile!,
             height: 200,
