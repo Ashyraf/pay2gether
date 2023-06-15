@@ -12,6 +12,8 @@ class RoomPage extends StatefulWidget {
   _RoomPageState createState() => _RoomPageState();
 
   static Widget createRoomButton(BuildContext context) {
+    final roomNameController = TextEditingController();
+
     return ElevatedButton(
       child: Text("Create a Room"),
       onPressed: () {
@@ -21,16 +23,20 @@ class RoomPage extends StatefulWidget {
             return AlertDialog(
               title: Text('Create a Room'),
               content: SingleChildScrollView(
-                // Wrap the content in SingleChildScrollView
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    AddReceiptButton(),
+                    AddReceiptButton(
+                      onReceiptImageSelected: (File imageFile) {
+                        // Handle the selected receipt image here
+                      },
+                    ),
                     SizedBox(height: 16),
                     TextField(
                       decoration: InputDecoration(
                         hintText: 'Room name',
                       ),
+                      controller: roomNameController,
                     ),
                     SizedBox(height: 16),
                     AddPeopleForm(),
@@ -40,6 +46,34 @@ class RoomPage extends StatefulWidget {
               actions: [
                 ElevatedButton(
                   onPressed: () {
+                    final roomName = roomNameController.text.trim();
+                    final _AddPeopleFormState? state =
+                        context.findAncestorStateOfType<_AddPeopleFormState>();
+                    final selectedFriends = state?.selectedFriends ?? [];
+                    final totalDebt = state?.totalDebt ?? 0.0;
+                    final currentUser = FirebaseAuth.instance.currentUser;
+                    final currentUserEmail = currentUser?.email;
+
+                    if (currentUserEmail != null) {
+                      FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(currentUserEmail)
+                          .collection('debtRoom')
+                          .add({
+                        'roomName': roomName,
+                        'roomMaster': currentUserEmail,
+                        'selectedFriends': selectedFriends,
+                        'totalDebt': totalDebt,
+                        // Add other relevant data as needed
+                      }).then((value) {
+                        // Success
+                        print('Room created successfully!');
+                      }).catchError((error) {
+                        // Error
+                        print('Failed to create room: $error');
+                      });
+                    }
+
                     Navigator.pop(context);
                   },
                   child: Text('Create'),
@@ -81,6 +115,7 @@ class AddPeopleForm extends StatefulWidget {
 class _AddPeopleFormState extends State<AddPeopleForm> {
   User? currentUser;
   List<Map<String, dynamic>> _friendList = [];
+  List<Map<String, dynamic>> selectedFriends = [];
   Map<String, dynamic>? selectedFriendWithDebt;
 
   final TextEditingController _debtAmountController = TextEditingController();
@@ -260,6 +295,11 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
 }
 
 class AddReceiptButton extends StatefulWidget {
+  final void Function(File imageFile) onReceiptImageSelected;
+
+  const AddReceiptButton({Key? key, required this.onReceiptImageSelected})
+      : super(key: key);
+
   @override
   _AddReceiptButtonState createState() => _AddReceiptButtonState();
 }
@@ -302,14 +342,26 @@ class _AddReceiptButtonState extends State<AddReceiptButton> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        ElevatedButton(
+          onPressed: () => _pickImage(ImageSource.camera),
+          child: Text('Take Photo'),
+        ),
+        ElevatedButton(
+          onPressed: () => _pickImage(ImageSource.gallery),
+          child: Text('Choose from Gallery'),
+        ),
         if (_imageFile != null) ...[
+          SizedBox(height: 16),
           Image.file(
             _imageFile!,
             height: 200,
           ),
           SizedBox(height: 16),
           ElevatedButton(
-            onPressed: _uploadImage,
+            onPressed: () {
+              widget.onReceiptImageSelected(_imageFile!);
+              _uploadImage();
+            },
             child: Text('Upload Receipt'),
           ),
         ],
