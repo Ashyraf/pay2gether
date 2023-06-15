@@ -14,6 +14,21 @@ class RoomPage extends StatefulWidget {
   static Widget createRoomButton(BuildContext context) {
     final roomNameController = TextEditingController();
 
+    // Initialize selectedFriends list
+    List<Map<String, dynamic>> selectedFriends = [];
+
+    // Function to add friend with debt to selectedFriends
+    void addFriendWithDebt(Map<String, dynamic> friend) {
+      friend['status'] = 'pending';
+      selectedFriends.add(friend);
+    }
+
+    // Calculate total debt
+    double calculateTotalDebt() {
+      return selectedFriends.fold(
+          0.0, (sum, friend) => sum + friend['debtAmount']);
+    }
+
     return ElevatedButton(
       child: Text("Create a Room"),
       onPressed: () {
@@ -39,7 +54,11 @@ class RoomPage extends StatefulWidget {
                       controller: roomNameController,
                     ),
                     SizedBox(height: 16),
-                    AddPeopleForm(),
+                    AddPeopleForm(
+                      selectedFriends: selectedFriends,
+                      addFriendWithDebt: addFriendWithDebt,
+                      calculateTotalDebt: calculateTotalDebt,
+                    ),
                   ],
                 ),
               ),
@@ -47,10 +66,6 @@ class RoomPage extends StatefulWidget {
                 ElevatedButton(
                   onPressed: () {
                     final roomName = roomNameController.text.trim();
-                    final _AddPeopleFormState? state =
-                        context.findAncestorStateOfType<_AddPeopleFormState>();
-                    final selectedFriends = state?.selectedFriends ?? [];
-                    final totalDebt = state?.totalDebt ?? 0.0;
                     final currentUser = FirebaseAuth.instance.currentUser;
                     final currentUserEmail = currentUser?.email;
 
@@ -64,7 +79,7 @@ class RoomPage extends StatefulWidget {
                           'status': 'pending',
                         };
                       }).toList(),
-                      'totalDebt': totalDebt,
+                      'totalDebt': calculateTotalDebt(),
                       // Add other relevant data as needed
                     }).then((value) {
                       // Success
@@ -78,7 +93,7 @@ class RoomPage extends StatefulWidget {
                   },
                   child: Text('Create'),
                 ),
-                TextButton(
+                ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
                   },
@@ -101,192 +116,10 @@ class _RoomPageState extends State<RoomPage> {
         title: Text('Room Page'),
       ),
       body: Center(
-        child: RoomPage.createRoomButton(context),
-      ),
-    );
-  }
-}
-
-class AddPeopleForm extends StatefulWidget {
-  @override
-  _AddPeopleFormState createState() => _AddPeopleFormState();
-}
-
-class _AddPeopleFormState extends State<AddPeopleForm> {
-  User? currentUser;
-  List<Map<String, dynamic>> _friendList = [];
-  List<Map<String, dynamic>> selectedFriends = [];
-  Map<String, dynamic>? selectedFriendWithDebt;
-
-  final TextEditingController _debtAmountController = TextEditingController();
-  double totalDebt = 0.0;
-
-  @override
-  void initState() {
-    super.initState();
-    getCurrentUser();
-    getFriendList();
-  }
-
-  @override
-  void dispose() {
-    _debtAmountController.dispose();
-    super.dispose();
-  }
-
-  void getCurrentUser() {
-    final FirebaseAuth auth = FirebaseAuth.instance;
-    final User? user = auth.currentUser;
-    setState(() {
-      currentUser = user;
-    });
-  }
-
-  Future<void> getFriendList() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final currentUserEmail = currentUser?.email;
-
-    final userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(currentUserEmail)
-        .get();
-
-    if (userDoc.exists) {
-      final data = userDoc.data();
-      if (data != null && data.containsKey('friendLists')) {
-        final friendList = data['friendLists'] as List<dynamic>;
-
-        setState(() {
-          _friendList = friendList.cast<Map<String, dynamic>>();
-        });
-      }
-    }
-  }
-
-  void addFriendWithDebt() {
-    if (selectedFriendWithDebt != null) {
-      selectedFriendWithDebt!['status'] = 'pending';
-      selectedFriends.add(selectedFriendWithDebt!);
-      selectedFriendWithDebt = null;
-      _debtAmountController.clear();
-      calculateTotalDebt();
-    }
-  }
-
-  void calculateTotalDebt() {
-    totalDebt =
-        selectedFriends.fold(0.0, (sum, friend) => sum + friend['debtAmount']);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        width: double.infinity,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Add people:'),
-            SizedBox(height: 8),
-            if (_friendList.isNotEmpty)
-              SizedBox(
-                width: 300,
-                height: 200,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _friendList.length,
-                  itemBuilder: (context, index) {
-                    final friend = _friendList[index];
-                    final friendName = friend['friendName'];
-                    double debtAmount = friend['debtAmount'] ?? 0.0;
-
-                    return Card(
-                      child: ListTile(
-                        title: Text(friendName ?? ''),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.add),
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    final TextEditingController
-                                        _debtAmountController =
-                                        TextEditingController();
-
-                                    return AlertDialog(
-                                      title: Text('Add Debt Amount'),
-                                      content: TextField(
-                                        controller: _debtAmountController,
-                                        keyboardType: TextInputType.number,
-                                        decoration: InputDecoration(
-                                          hintText: 'Enter debt amount',
-                                        ),
-                                      ),
-                                      actions: [
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              final String enteredAmount =
-                                                  _debtAmountController.text
-                                                      .trim();
-                                              debtAmount = double.tryParse(
-                                                      enteredAmount) ??
-                                                  0.0;
-                                              if (debtAmount > 0.0) {
-                                                selectedFriends.add({
-                                                  'friendName': friendName,
-                                                  'debtAmount': debtAmount,
-                                                  'status': 'pending',
-                                                });
-                                                calculateTotalDebt();
-                                              }
-                                              Navigator.pop(context);
-                                            });
-                                          },
-                                          child: Text('Add'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          child: Text('Cancel'),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: selectedFriends.map((friend) {
-                return Chip(
-                  label: Text(
-                      '${friend['friendName']} (${friend['debtAmount']} \$)'),
-                  deleteIcon: Icon(Icons.clear),
-                  onDeleted: () {
-                    setState(() {
-                      selectedFriends.remove(friend);
-                      calculateTotalDebt();
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-            SizedBox(height: 8),
-            Text('Total Debt: $totalDebt \$'),
+            RoomPage.createRoomButton(context),
           ],
         ),
       ),
@@ -294,97 +127,114 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
   }
 }
 
-class AddReceiptButton extends StatefulWidget {
-  final void Function(File imageFile) onReceiptImageSelected;
+class AddPeopleForm extends StatefulWidget {
+  final List<Map<String, dynamic>> selectedFriends;
+  final Function addFriendWithDebt;
+  final Function calculateTotalDebt;
 
-  const AddReceiptButton({Key? key, required this.onReceiptImageSelected})
-      : super(key: key);
+  const AddPeopleForm({
+    Key? key,
+    required this.selectedFriends,
+    required this.addFriendWithDebt,
+    required this.calculateTotalDebt,
+  }) : super(key: key);
 
   @override
-  _AddReceiptButtonState createState() => _AddReceiptButtonState();
+  _AddPeopleFormState createState() => _AddPeopleFormState();
 }
 
-class _AddReceiptButtonState extends State<AddReceiptButton> {
-  File? _imageFile;
-
-  Future<void> _pickImage(ImageSource source) async {
-    final picker = ImagePicker();
-    final pickedImage = await picker.getImage(source: source);
-    if (pickedImage != null) {
-      setState(() {
-        _imageFile = File(pickedImage.path);
-      });
-    }
-  }
-
-  Future<void> _uploadImage() async {
-    if (_imageFile == null) return;
-
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final userId = currentUser?.uid;
-
-    final reference = FirebaseStorage.instance
-        .ref()
-        .child('receipts/$userId/${DateTime.now().millisecondsSinceEpoch}.jpg');
-
-    try {
-      final task = await reference.putFile(_imageFile!);
-      final downloadUrl = await task.ref.getDownloadURL();
-
-      // Perform further actions with the download URL (e.g., save to Firestore)
-      print('Uploaded image URL: $downloadUrl');
-    } catch (error) {
-      print('Error uploading image: $error');
-    }
-  }
+class _AddPeopleFormState extends State<AddPeopleForm> {
+  final _friendNameController = TextEditingController();
+  final _debtAmountController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ElevatedButton.icon(
-          onPressed: () => _pickImage(ImageSource.camera),
-          icon: Icon(Icons.camera),
-          label: Text('Take Photo'),
-        ),
-        ElevatedButton.icon(
-          onPressed: () => _pickImage(ImageSource.gallery),
-          icon: Icon(Icons.image),
-          label: Text('Choose from Gallery'),
-        ),
-        if (_imageFile != null) ...[
-          SizedBox(height: 16),
-          Image.file(
-            _imageFile!,
-            height: 200,
+        TextField(
+          decoration: InputDecoration(
+            hintText: 'Friend Name',
           ),
-          SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              widget.onReceiptImageSelected(_imageFile!);
-              _uploadImage();
-            },
-            child: Text('Upload Receipt'),
+          controller: _friendNameController,
+        ),
+        SizedBox(height: 16),
+        TextField(
+          decoration: InputDecoration(
+            hintText: 'Debt Amount',
           ),
-        ],
+          controller: _debtAmountController,
+          keyboardType: TextInputType.number,
+        ),
+        SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: () {
+            final friendName = _friendNameController.text.trim();
+            final debtAmount =
+                double.tryParse(_debtAmountController.text) ?? 0.0;
+
+            if (friendName.isNotEmpty && debtAmount > 0) {
+              final friend = {
+                'friendName': friendName,
+                'debtAmount': debtAmount,
+              };
+
+              // Call the addFriendWithDebt function from the parent widget
+              widget.addFriendWithDebt(friend);
+
+              // Clear the text fields
+              _friendNameController.clear();
+              _debtAmountController.clear();
+
+              // Rebuild the parent widget to update the total debt display
+              setState(() {});
+            }
+          },
+          child: Text('Add Friend'),
+        ),
+        SizedBox(height: 16),
+        Text('Total Debt: \$${widget.calculateTotalDebt().toStringAsFixed(2)}'),
+        SizedBox(height: 16),
+        ListView.builder(
+          shrinkWrap: true,
+          itemCount: widget.selectedFriends.length,
+          itemBuilder: (BuildContext context, int index) {
+            final friend = widget.selectedFriends[index];
+            return ListTile(
+              title: Text(friend['friendName']),
+              subtitle: Text('\$${friend['debtAmount'].toStringAsFixed(2)}'),
+            );
+          },
+        ),
       ],
     );
   }
 }
 
-void main() {
-  runApp(MyApp());
-}
+class AddReceiptButton extends StatelessWidget {
+  final Function(File) onReceiptImageSelected;
 
-class MyApp extends StatelessWidget {
+  const AddReceiptButton({Key? key, required this.onReceiptImageSelected})
+      : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Room App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: RoomPage(),
+    return ElevatedButton(
+      onPressed: () async {
+        final ImagePicker _picker = ImagePicker();
+        final XFile? image =
+            await _picker.pickImage(source: ImageSource.gallery);
+        if (image != null) {
+          final imageFile = File(image.path);
+          onReceiptImageSelected(imageFile);
+        }
+      },
+      child: Text('Add Receipt'),
     );
   }
+}
+
+void main() {
+  runApp(MaterialApp(
+    home: RoomPage(),
+  ));
 }
