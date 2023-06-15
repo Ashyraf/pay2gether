@@ -54,25 +54,19 @@ class RoomPage extends StatefulWidget {
                     final currentUser = FirebaseAuth.instance.currentUser;
                     final currentUserEmail = currentUser?.email;
 
-                    if (currentUserEmail != null) {
-                      FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(currentUserEmail)
-                          .collection('debtRoom')
-                          .add({
-                        'roomName': roomName,
-                        'roomMaster': currentUserEmail,
-                        'selectedFriends': selectedFriends,
-                        'totalDebt': totalDebt,
-                        // Add other relevant data as needed
-                      }).then((value) {
-                        // Success
-                        print('Room created successfully!');
-                      }).catchError((error) {
-                        // Error
-                        print('Failed to create room: $error');
-                      });
-                    }
+                    FirebaseFirestore.instance.collection('debtRoom').add({
+                      'roomName': roomName,
+                      'roomMaster': currentUserEmail,
+                      'selectedFriends': selectedFriends,
+                      'totalDebt': totalDebt,
+                      // Add other relevant data as needed
+                    }).then((value) {
+                      // Success
+                      print('Room created successfully!');
+                    }).catchError((error) {
+                      // Error
+                      print('Failed to create room: $error');
+                    });
 
                     Navigator.pop(context);
                   },
