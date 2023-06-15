@@ -128,12 +128,6 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
     getFriendList();
   }
 
-  @override
-  void dispose() {
-    _debtAmountController.dispose();
-    super.dispose();
-  }
-
   void getCurrentUser() {
     final FirebaseAuth auth = FirebaseAuth.instance;
     final User? user = auth.currentUser;
