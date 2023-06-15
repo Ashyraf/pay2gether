@@ -128,6 +128,12 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
     getFriendList();
   }
 
+  @override
+  void dispose() {
+    _debtAmountController.dispose();
+    super.dispose();
+  }
+
   void getCurrentUser() {
     final FirebaseAuth auth = FirebaseAuth.instance;
     final User? user = auth.currentUser;
@@ -336,13 +342,15 @@ class _AddReceiptButtonState extends State<AddReceiptButton> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ElevatedButton(
+        ElevatedButton.icon(
           onPressed: () => _pickImage(ImageSource.camera),
-          child: Text('Take Photo'),
+          icon: Icon(Icons.camera),
+          label: Text('Take Photo'),
         ),
-        ElevatedButton(
+        ElevatedButton.icon(
           onPressed: () => _pickImage(ImageSource.gallery),
-          child: Text('Choose from Gallery'),
+          icon: Icon(Icons.image),
+          label: Text('Choose from Gallery'),
         ),
         if (_imageFile != null) ...[
           SizedBox(height: 16),
