@@ -57,7 +57,13 @@ class RoomPage extends StatefulWidget {
                     FirebaseFirestore.instance.collection('debtRoom').add({
                       'roomName': roomName,
                       'roomMaster': currentUserEmail,
-                      'selectedFriends': selectedFriends,
+                      'selectedFriends': selectedFriends.map((friend) {
+                        return {
+                          'friendName': friend['friendName'],
+                          'debtAmount': friend['debtAmount'],
+                          'status': 'pending',
+                        };
+                      }).toList(),
                       'totalDebt': totalDebt,
                       // Add other relevant data as needed
                     }).then((value) {
