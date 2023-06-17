@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pay2gether/screen/roomcardextend.dart';
 
 class RoomCard extends StatefulWidget {
   @override
@@ -114,8 +115,12 @@ class _RoomCardState extends State<RoomCard> {
                 trailing: IconButton(
                   icon: Icon(Icons.info),
                   onPressed: () {
-                    // Open the card with all the information
-                    // Implement your logic here to display detailed information about the room
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => RoomCardExtend(
+                              roomData: roomData, roomName: roomName)),
+                    );
                   },
                 ),
               ),
