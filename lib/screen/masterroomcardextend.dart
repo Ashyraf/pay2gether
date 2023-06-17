@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pay2gether/screen/notify.dart'; // Import the notify.dart file
 
 class MasterRoomCardExtend extends StatelessWidget {
   final Map<String, dynamic> roomData;
@@ -52,7 +53,8 @@ class MasterRoomCardExtend extends StatelessWidget {
                   ElevatedButton(
                     child: Text('Notify'),
                     onPressed: () {
-                      // Handle notify button press
+                      Notify.sendNotification(context,
+                          friendName); // Call the sendNotification method using the class name
                     },
                   ),
                 ],
