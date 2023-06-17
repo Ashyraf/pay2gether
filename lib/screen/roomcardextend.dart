@@ -7,7 +7,6 @@ class RoomCardExtend extends StatelessWidget {
   const RoomCardExtend({required this.roomData, required this.roomName});
   @override
   Widget build(BuildContext context) {
-    final roomName = roomData['roomName'] ?? '';
     final selectedFriends = roomData['selectedFriends'] as List<dynamic>;
 
     return Scaffold(
