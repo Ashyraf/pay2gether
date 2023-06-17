@@ -104,6 +104,11 @@ class _RoomCardState extends State<RoomCard> {
                           _buildCircleAvatar(friend['status']),
                         ],
                       ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Total Debt: \$${totalDebt.toStringAsFixed(2)}',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ],
                 ),
                 trailing: IconButton(
