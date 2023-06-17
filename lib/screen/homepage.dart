@@ -5,6 +5,7 @@ import 'friend.dart';
 import 'login.dart';
 import 'profile_page.dart';
 import 'room.dart';
+import 'roomcard.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -56,24 +57,35 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appbar(context), // Add the appbar widget here
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              child: Text("Friends"),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => Friend()),
-                );
-              },
+      appBar: appbar(context), // Add the app bar widget here
+      body: Column(
+        children: [
+          ElevatedButton(
+            child: Text("Friends"),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Friend()),
+              );
+            },
+          ),
+          SizedBox(height: 16),
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  RoomCard(
+                    roomName: "Room 1",
+                    roomDescription: "Description for Room 1",
+                  ),
+                  SizedBox(height: 16),
+                  RoomPage.createRoomButton(context),
+                ],
+              ),
             ),
-            SizedBox(height: 16),
-            RoomPage.createRoomButton(context),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
