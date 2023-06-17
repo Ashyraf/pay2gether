@@ -6,6 +6,7 @@ import 'login.dart';
 import 'profile_page.dart';
 import 'room.dart';
 import 'roomcard.dart';
+import 'masterroomcard.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -68,6 +69,10 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(builder: (context) => Friend()),
               );
             },
+          ),
+          SizedBox(height: 16),
+          Expanded(
+            child: MasterRoomCard(),
           ),
           SizedBox(height: 16),
           Expanded(
