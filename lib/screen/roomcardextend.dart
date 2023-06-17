@@ -38,6 +38,12 @@ class RoomCardExtend extends StatelessWidget {
                   ),
                 ],
               ),
+              trailing: ElevatedButton(
+                child: Text('Payment'),
+                onPressed: () {
+                  // Handle payment button press
+                },
+              ),
             ),
           );
         },
