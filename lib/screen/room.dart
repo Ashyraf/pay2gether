@@ -14,10 +14,6 @@ class RoomPage extends StatefulWidget {
 
   static Widget createRoomButton(BuildContext context) {
     final roomNameController = TextEditingController();
-// Define a counter variable
-    int roomCounter = 1;
-
-// ...
 
     // Initialize selectedFriends list
     List<Map<String, dynamic>> selectedFriends = [];
@@ -74,12 +70,9 @@ class RoomPage extends StatefulWidget {
                     final currentUser = FirebaseAuth.instance.currentUser;
                     final currentUserEmail = currentUser?.email;
 
-                    final roomDocumentName = 'room$roomCounter';
-                    roomCounter++; // Increment the counter for the next room
-
                     FirebaseFirestore.instance
                         .collection('debtRoom')
-                        .doc(roomDocumentName)
+                        .doc(roomName) // Use roomName as the document ID
                         .set({
                       'roomName': roomName,
                       'roomMaster': currentUserEmail,
