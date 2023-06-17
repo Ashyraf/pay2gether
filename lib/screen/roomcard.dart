@@ -91,7 +91,21 @@ class _RoomCardState extends State<RoomCard> {
             return Card(
               child: ListTile(
                 title: Text(roomName),
-                subtitle: Text('Total Debt: \$${totalDebt.toStringAsFixed(2)}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (final friend in selectedFriends)
+                      Row(
+                        children: [
+                          Text('${friend['friendName']}'),
+                          SizedBox(width: 8),
+                          Text('\$${friend['debtAmount'].toStringAsFixed(2)}'),
+                          SizedBox(width: 8),
+                          _buildCircleAvatar(friend['status']),
+                        ],
+                      ),
+                  ],
+                ),
                 trailing: IconButton(
                   icon: Icon(Icons.info),
                   onPressed: () {
