@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
-class RoomCardExtend extends StatelessWidget {
+class MasterRoomCardExtend extends StatelessWidget {
   final Map<String, dynamic> roomData;
   final String roomName;
 
-  const RoomCardExtend({required this.roomData, required this.roomName});
+  const MasterRoomCardExtend({required this.roomData, required this.roomName});
+
   @override
   Widget build(BuildContext context) {
     final roomName = roomData['roomName'] ?? '';
@@ -38,11 +39,23 @@ class RoomCardExtend extends StatelessWidget {
                   ),
                 ],
               ),
-              trailing: ElevatedButton(
-                child: Text('Payment'),
-                onPressed: () {
-                  // Handle payment button press
-                },
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton(
+                    child: Text('Verified'),
+                    onPressed: () {
+                      // Handle verified button press
+                    },
+                  ),
+                  SizedBox(width: 8),
+                  ElevatedButton(
+                    child: Text('Notify'),
+                    onPressed: () {
+                      // Handle notify button press
+                    },
+                  ),
+                ],
               ),
             ),
           );

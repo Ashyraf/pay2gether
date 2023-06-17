@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:pay2gether/screen/roomcardextend.dart';
+import 'masterroomcardextend.dart';
 
 class MasterRoomCard extends StatefulWidget {
   @override
@@ -116,7 +116,7 @@ class _MasterRoomCardState extends State<MasterRoomCard> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => RoomCardExtend(
+                          builder: (context) => MasterRoomCardExtend(
                               roomData: roomData, roomName: roomName)),
                     );
                   },
