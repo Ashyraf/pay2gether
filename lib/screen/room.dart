@@ -28,98 +28,154 @@ class RoomPage extends StatefulWidget {
           0.0, (sum, friend) => sum + friend['debtAmount']);
     }
 
+    // Function to retrieve current user's bank accounts
+    Future<List<Map<String, dynamic>>> getCurrentUserBankAccounts() async {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      final currentUserEmail = currentUser?.email;
+
+      if (currentUserEmail != null) {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUserEmail)
+            .get();
+        final userData = snapshot.data();
+        if (userData != null && userData['bankAccounts'] != null) {
+          return List<Map<String, dynamic>>.from(userData['bankAccounts']);
+        }
+      }
+
+      return [];
+    }
+
     return ElevatedButton(
       child: Text("Create a Room"),
       onPressed: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Create a Room'),
-              content: StatefulBuilder(
-                builder: (BuildContext context, StateSetter setState) {
-                  return RefreshIndicator(
-                    onRefresh: () {
-                      return Future.delayed(Duration(seconds: 1), () {
-                        setState(() {
-                          selectedFriends.clear(); // Clear selectedFriends list
-                          roomNameController.clear(); // Clear room name
-                        });
-                      });
-                    },
-                    child: SingleChildScrollView(
-                      physics: AlwaysScrollableScrollPhysics(),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AddReceiptButton(
-                            onReceiptImageSelected: (File imageFile) {
-                              // Handle the selected receipt image here
-                            },
-                          ),
-                          SizedBox(height: 16),
-                          TextField(
-                            decoration: InputDecoration(
-                              hintText: 'Room name',
-                            ),
-                            controller: roomNameController,
-                          ),
-                          SizedBox(height: 16),
-                          AddPeopleForm(
-                            selectedFriends: selectedFriends,
-                            addFriendWithDebt: addFriendWithDebt,
-                            calculateTotalDebt: calculateTotalDebt,
-                          ),
-                        ],
-                      ),
+        final currentUser = FirebaseAuth.instance.currentUser;
+        final currentUserEmail = currentUser?.email;
+
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUserEmail)
+            .get()
+            .then((userSnapshot) {
+          final bankAccounts = userSnapshot.data()?['bankAccounts'];
+          if (bankAccounts == null || bankAccounts.isEmpty) {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Error'),
+                  content: Text('Please add your bank account first!'),
+                  actions: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text('OK'),
                     ),
-                  );
-                },
-              ),
-              actions: [
-                ElevatedButton(
-                  onPressed: () {
-                    final roomName = roomNameController.text.trim();
-                    final currentUser = FirebaseAuth.instance.currentUser;
-                    final currentUserEmail = currentUser?.email;
-
-                    FirebaseFirestore.instance
-                        .collection('debtRoom')
-                        .doc(roomName) // Use roomName as the document ID
-                        .set({
-                      'roomName': roomName,
-                      'roomMaster': currentUserEmail,
-                      'selectedFriends': selectedFriends.map((friend) {
-                        return {
-                          'friendName': friend['friendName'],
-                          'debtAmount': friend['debtAmount'],
-                          'status': 'pending',
-                        };
-                      }).toList(),
-                      'totalDebt': calculateTotalDebt(),
-                      // Add other relevant data as needed
-                    }).then((value) {
-                      // Success
-                      print('Room created successfully!');
-                    }).catchError((error) {
-                      // Error
-                      print('Failed to create room: $error');
-                    });
-
-                    Navigator.pop(context);
-                  },
-                  child: Text('Create'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text('Cancel'),
-                ),
-              ],
+                  ],
+                );
+              },
             );
-          },
-        );
+          } else {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Create a Room'),
+                  content: StatefulBuilder(
+                    builder: (BuildContext context, StateSetter setState) {
+                      return RefreshIndicator(
+                        onRefresh: () {
+                          return Future.delayed(Duration(seconds: 1), () {
+                            setState(() {
+                              selectedFriends
+                                  .clear(); // Clear selectedFriends list
+                              roomNameController.clear(); // Clear room name
+                            });
+                          });
+                        },
+                        child: SingleChildScrollView(
+                          physics: AlwaysScrollableScrollPhysics(),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AddReceiptButton(
+                                onReceiptImageSelected: (File imageFile) {
+                                  // Handle the selected receipt image here
+                                },
+                              ),
+                              SizedBox(height: 16),
+                              TextField(
+                                decoration: InputDecoration(
+                                  hintText: 'Room name',
+                                ),
+                                controller: roomNameController,
+                              ),
+                              SizedBox(height: 16),
+                              AddPeopleForm(
+                                selectedFriends: selectedFriends,
+                                addFriendWithDebt: addFriendWithDebt,
+                                calculateTotalDebt: calculateTotalDebt,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  actions: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        final roomName = roomNameController.text.trim();
+                        final currentUser = FirebaseAuth.instance.currentUser;
+                        final currentUserEmail = currentUser?.email;
+
+                        final bankAccounts = await getCurrentUserBankAccounts();
+
+                        FirebaseFirestore.instance
+                            .collection('debtRoom')
+                            .doc(roomName)
+                            .set({
+                          'roomName': roomName,
+                          'roomMaster': currentUserEmail,
+                          'selectedFriends': selectedFriends.map((friend) {
+                            return {
+                              'friendName': friend['friendName'],
+                              'debtAmount': friend['debtAmount'],
+                              'status': 'pending',
+                            };
+                          }).toList(),
+                          'totalDebt': calculateTotalDebt(),
+                          'bankAccounts':
+                              bankAccounts, // Include bank account data
+                          // Add other relevant data as needed
+                        }).then((value) {
+                          // Success
+                          print('Room created successfully!');
+                        }).catchError((error) {
+                          // Error
+                          print('Failed to create room: $error');
+                        });
+
+                        Navigator.pop(context);
+                      },
+                      child: Text('Create'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text('Cancel'),
+                    ),
+                  ],
+                );
+              },
+            );
+          }
+        }).catchError((error) {
+          print('Failed to retrieve user data: $error');
+        });
       },
     );
   }
