@@ -64,7 +64,7 @@ class _RegisterState extends State<Register> {
 
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => LogiIn()),
+            MaterialPageRoute(builder: (context) => Login()),
           );
         }
       } catch (e) {
@@ -284,7 +284,7 @@ class _RegisterState extends State<Register> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const LogiIn()),
+              MaterialPageRoute(builder: (context) => const Login()),
             );
           },
           child: const Text(

@@ -8,7 +8,7 @@ import 'room.dart';
 import 'roomcard.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -22,7 +22,7 @@ class _HomePageState extends State<HomePage> {
       centerTitle: true,
       backgroundColor: Colors.grey,
       leading: IconButton(
-        icon: Icon(Icons.person), // Change the icon to a profile icon
+        icon: Icon(Icons.person),
         onPressed: () {
           Navigator.push(
             context,
@@ -35,13 +35,13 @@ class _HomePageState extends State<HomePage> {
         Builder(
           builder: (BuildContext context) {
             return IconButton(
-              icon: const Icon(Icons.power), // Change the icon to a power icon
+              icon: const Icon(Icons.power),
               onPressed: () {
                 FirebaseAuth.instance.signOut().then((value) {
                   print("SIGN OUT");
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => LogiIn()),
+                    MaterialPageRoute(builder: (context) => Login()),
                   );
                 });
               },
@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appbar(context), // Add the app bar widget here
+      appBar: appbar(context),
       body: Column(
         children: [
           ElevatedButton(
@@ -71,20 +71,10 @@ class _HomePageState extends State<HomePage> {
           ),
           SizedBox(height: 16),
           Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  RoomCard(
-                    roomName: "Room 1",
-                    roomDescription: "Description for Room 1",
-                  ),
-                  SizedBox(height: 16),
-                  RoomPage.createRoomButton(context),
-                ],
-              ),
-            ),
+            child: RoomCard(),
           ),
+          SizedBox(height: 16),
+          RoomPage.createRoomButton(context),
         ],
       ),
     );

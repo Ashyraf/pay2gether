@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// ignore: unused_import
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -38,30 +36,45 @@ class RoomPage extends StatefulWidget {
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text('Create a Room'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AddReceiptButton(
-                      onReceiptImageSelected: (File imageFile) {
-                        // Handle the selected receipt image here
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Room name',
+              content: StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+                  return RefreshIndicator(
+                    onRefresh: () {
+                      return Future.delayed(Duration(seconds: 1), () {
+                        setState(() {
+                          selectedFriends.clear(); // Clear selectedFriends list
+                          roomNameController.clear(); // Clear room name
+                        });
+                      });
+                    },
+                    child: SingleChildScrollView(
+                      physics: AlwaysScrollableScrollPhysics(),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AddReceiptButton(
+                            onReceiptImageSelected: (File imageFile) {
+                              // Handle the selected receipt image here
+                            },
+                          ),
+                          SizedBox(height: 16),
+                          TextField(
+                            decoration: InputDecoration(
+                              hintText: 'Room name',
+                            ),
+                            controller: roomNameController,
+                          ),
+                          SizedBox(height: 16),
+                          AddPeopleForm(
+                            selectedFriends: selectedFriends,
+                            addFriendWithDebt: addFriendWithDebt,
+                            calculateTotalDebt: calculateTotalDebt,
+                          ),
+                        ],
                       ),
-                      controller: roomNameController,
                     ),
-                    SizedBox(height: 16),
-                    AddPeopleForm(
-                      selectedFriends: selectedFriends,
-                      addFriendWithDebt: addFriendWithDebt,
-                      calculateTotalDebt: calculateTotalDebt,
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
               actions: [
                 ElevatedButton(

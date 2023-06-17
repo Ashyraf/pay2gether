@@ -6,14 +6,14 @@ import 'package:pay2gether/screen/homepage.dart';
 import '../reusable_widget/reuse.dart';
 import 'register.dart';
 
-class LogiIn extends StatefulWidget {
-  const LogiIn({super.key});
+class Login extends StatefulWidget {
+  const Login({super.key});
 
   @override
-  _LogiInState createState() => _LogiInState();
+  _LoginState createState() => _LoginState();
 }
 
-class _LogiInState extends State<LogiIn> {
+class _LoginState extends State<Login> {
   TextEditingController _usernameTextController = TextEditingController();
   TextEditingController _passwordTextController = TextEditingController();
   bool _isLoading = false;
