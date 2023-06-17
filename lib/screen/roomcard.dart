@@ -73,6 +73,9 @@ class _RoomCardState extends State<RoomCard> {
             final roomData = filteredData[index].data() as Map<String, dynamic>;
             final roomName = roomData['roomName'] ?? '';
 
+            // Retrieve bankAccounts from the debtRoom collection
+            final bankAccounts = roomData['bankAccounts'] ?? [];
+
             // Calculate total debt from the selectedFriends
             double totalDebt = 0;
             final selectedFriends =
@@ -118,8 +121,12 @@ class _RoomCardState extends State<RoomCard> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => RoomCardExtend(
-                              roomData: roomData, roomName: roomName)),
+                        builder: (context) => RoomCardExtend(
+                          roomData: roomData,
+                          roomName: roomName,
+                          bankAccounts: bankAccounts,
+                        ),
+                      ),
                     );
                   },
                 ),
