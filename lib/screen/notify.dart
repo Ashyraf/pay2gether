@@ -54,7 +54,7 @@ class Notify {
         if (response.statusCode == 200) {
           print('Notification sent successfully to $friendUsername');
         } else {
-          print('Failed to send notification');
+          print('Failed to send notificationto $friendUsername');
         }
       } else {
         throw Exception('Friend not found.');
