@@ -1,10 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+
 import 'login.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: '',
+      theme: ThemeData(
+        primarySwatch: Colors.grey,
+      ),
+      home: const Register(),
+    );
+  }
+}
 
 class Register extends StatefulWidget {
   const Register({Key? key}) : super(key: key);
@@ -30,7 +55,7 @@ class _RegisterState extends State<Register> {
     super.dispose();
   }
 
-  Future register() async {
+  Future<void> register() async {
     if (passwordConfirmed()) {
       try {
         UserCredential userCredential =
@@ -42,15 +67,18 @@ class _RegisterState extends State<Register> {
         if (userCredential.user != null) {
           String username = _usernameController.text.trim();
           String email = _emailController.text.trim();
+          String profileImageUrl = '';
 
           // Set display name for the user
           await userCredential.user!.updateProfile(displayName: username);
 
           // Upload profile image if available
-          String profileImageUrl = '';
           if (_profileImage != null) {
             profileImageUrl = await uploadProfileImage();
           }
+
+          // Retrieve FCM token
+          String? fcmToken = await FirebaseMessaging.instance.getToken();
 
           // Add user details to Firestore
           await FirebaseFirestore.instance
@@ -60,6 +88,7 @@ class _RegisterState extends State<Register> {
             'username': username,
             'email': email,
             'profileImageUrl': profileImageUrl,
+            'fcmToken': fcmToken,
           });
 
           Navigator.pushReplacement(
@@ -95,7 +124,7 @@ class _RegisterState extends State<Register> {
         _confirmPasswordController.text.trim();
   }
 
-  Future pickProfileImage() async {
+  Future<void> pickProfileImage() async {
     final pickedImage = await _imagePicker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 80,
@@ -108,191 +137,65 @@ class _RegisterState extends State<Register> {
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          "Hello New User!",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Register'),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.blueGrey,
-              Colors.grey,
-              Colors.white,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 120, 20, 0),
-            child: Column(
-              children: <Widget>[
-                const SizedBox(
-                  height: 100,
-                ),
-                GestureDetector(
-                  onTap: pickProfileImage,
-                  child: CircleAvatar(
-                    radius: 60,
-                    backgroundImage: _profileImage != null
-                        ? FileImage(_profileImage!)
-                        : null,
-                    child: _profileImage == null
-                        ? Icon(
-                            Icons.camera_alt,
-                            size: 40,
-                          )
-                        : null,
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: TextField(
-                    controller: _usernameController,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.grey.withOpacity(0.9)),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      hintText: 'Username',
-                      fillColor: Colors.white,
-                      filled: true,
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.grey.withOpacity(0.9)),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      hintText: 'Email',
-                      fillColor: Colors.white,
-                      filled: true,
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.grey.withOpacity(0.9)),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      hintText: 'Password',
-                      fillColor: Colors.white,
-                      filled: true,
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: TextField(
-                    controller: _confirmPasswordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      hintText: 'Re-enter Password',
-                      fillColor: Colors.grey[200],
-                      filled: true,
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: GestureDetector(
-                    onTap: register,
-                    child: Container(
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'REGISTER',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                loginOption(),
-                const SizedBox(
-                  height: 220,
-                ),
-              ],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            if (_profileImage != null)
+              CircleAvatar(
+                radius: 60,
+                backgroundImage: FileImage(_profileImage!),
+              ),
+            ElevatedButton(
+              onPressed: pickProfileImage,
+              child: const Text('Pick Image'),
             ),
-          ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                controller: _usernameController,
+                decoration: const InputDecoration(labelText: 'Username'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(labelText: 'Password'),
+                obscureText: true,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                controller: _confirmPasswordController,
+                decoration:
+                    const InputDecoration(labelText: 'Confirm Password'),
+                obscureText: true,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: register,
+              child: const Text('Register'),
+            ),
+          ],
         ),
       ),
-    );
-  }
-
-  Row loginOption() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Text("You Already Have An Account??",
-            style: TextStyle(color: Colors.white)),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const Login()),
-            );
-          },
-          child: const Text(
-            "LOGIN HERE",
-            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ],
     );
   }
 }
