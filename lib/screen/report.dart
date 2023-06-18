@@ -87,7 +87,7 @@ class _ReportDialogState extends State<ReportDialog> {
 
   void _sendReport() {
     final report = {
-      'friendName': widget.friendName,
+      'reportertName': widget.friendName,
       'roomName': widget.roomName,
       'reason': selectedReason,
       'optionalReason': optionalReason,
