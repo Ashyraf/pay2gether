@@ -9,13 +9,7 @@ class Notify {
   static final FirebaseMessaging _firebaseMessaging =
       FirebaseMessaging.instance;
 
-  static Future<void> initializeNotifications() async {
-    // Initialize Firebase Messaging
-    await _firebaseMessaging.requestPermission();
-  }
-
-  static Future<void> sendNotification(
-      BuildContext context, String friendName) async {
+  static Future<void> sendNotification(String friendName) async {
     try {
       final friendSnapshot = await FirebaseFirestore.instance
           .collection('users')
