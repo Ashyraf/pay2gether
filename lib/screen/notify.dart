@@ -9,7 +9,13 @@ class Notify {
   static final FirebaseMessaging _firebaseMessaging =
       FirebaseMessaging.instance;
 
-  static Future<void> sendNotification(String friendName) async {
+  static Future<void> initializeNotifications() async {
+    // Initialize Firebase Messaging
+    await _firebaseMessaging.requestPermission();
+  }
+
+  static Future<void> sendNotification(
+      BuildContext context, String friendName) async {
     try {
       final friendSnapshot = await FirebaseFirestore.instance
           .collection('users')
@@ -22,7 +28,7 @@ class Notify {
         final fcmToken = friendDoc['fcmToken'];
 
         final serverKey =
-            'AAAA99JnmJg:APA91bEgxWOYnok2CpggYEdP_z5t9Phlp6dDqZnoDdT3RfM8tN3ulTq60HxbEsPjnfLTDlHOApyyf-nkIhm7rD_6j7zMu27AUE6PAhChW3JRHZcCCYQZHdwmQqWFpGhcT9we9N4QCWnb';
+            'AAAA99JnmJg:APA91bGDu-pBEK8NsXEv91QzpnWjz9yajkEv9S_QTw578jmFSfFmCenNzh2Z0ggDtEFyLWcNfa1G4A9WKA8d34oOX7ctmlWF7pSerOFj40gBM6VgngcXwzyKj5jaiXIwFZYQn7NtmQ7Z';
 
         final headers = <String, String>{
           'Content-Type': 'application/json',
@@ -35,7 +41,7 @@ class Notify {
         };
 
         final message = {
-          'token': fcmToken,
+          'to': fcmToken,
           'notification': notification,
         };
 
@@ -45,10 +51,15 @@ class Notify {
           body: jsonEncode(message),
         );
 
+        print('FCM Response Code: ${response.statusCode}');
+        print('FCM Response Body: ${response.body}');
+        print('FCM Response Headers: ${response.headers}');
+
         if (response.statusCode == 200) {
           print('Notification sent successfully to $friendUsername');
         } else {
-          print('Failed to send notificationto $friendUsername');
+          print(
+              'Failed to send notification to $friendUsername. Error: ${response.statusCode}');
         }
       } else {
         throw Exception('Friend not found.');
