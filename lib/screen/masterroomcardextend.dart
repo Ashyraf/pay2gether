@@ -53,8 +53,7 @@ class MasterRoomCardExtend extends StatelessWidget {
                   ElevatedButton(
                     child: Text('Notify'),
                     onPressed: () {
-                      Notify.sendNotification(context,
-                          friendName); // Call the sendNotification method using the class name
+                      Notify.sendNotification(context, friendName);
                     },
                   ),
                 ],

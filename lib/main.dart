@@ -1,14 +1,14 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:pay2gether/Utility/message_api.dart';
+//import 'package:pay2gether/Utility/message_api.dart';
 import 'package:pay2gether/auth.dart';
 import 'package:pay2gether/screen/notify.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  await FirebaseApi().initNotifications();
-  await Notify.initializeNotifications(); // Initialize notifications
+  await Notify.initializeNotifications();
+
   runApp(const MyApp());
 }
 

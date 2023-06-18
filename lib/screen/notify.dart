@@ -1,7 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:http/http.dart' as http;
 
 class Notify {
   static final FirebaseMessaging _firebaseMessaging =
@@ -15,8 +17,6 @@ class Notify {
   static Future<void> sendNotification(
       BuildContext context, String friendName) async {
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-
       final friendSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .where('username', isEqualTo: friendName)
@@ -24,39 +24,37 @@ class Notify {
 
       if (friendSnapshot.docs.isNotEmpty) {
         final friendDoc = friendSnapshot.docs.first;
-        final friendEmail = friendDoc['email'];
+        final friendUsername = friendDoc['username'];
+        final fcmToken = friendDoc['fcmToken'];
 
-        // Retrieve the user document based on the friendEmail
-        final userSnapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .where('email', isEqualTo: friendEmail)
-            .get();
+        final serverKey =
+            'AAAA99JnmJg:APA91bEgxWOYnok2CpggYEdP_z5t9Phlp6dDqZnoDdT3RfM8tN3ulTq60HxbEsPjnfLTDlHOApyyf-nkIhm7rD_6j7zMu27AUE6PAhChW3JRHZcCCYQZHdwmQqWFpGhcT9we9N4QCWnb';
 
-        if (userSnapshot.docs.isNotEmpty) {
-          final userDoc = userSnapshot.docs.first;
-          final userName = userDoc['username'];
-          final fcmToken = userDoc['fcmToken'];
+        final headers = <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverKey',
+        };
 
-          // Replace this code with your server-side logic to send the notification
-          // Typically, you would make an API call to your backend server or use cloud functions to send the notification
+        final notification = {
+          'title': 'Notification',
+          'body': 'You have a debt to pay.',
+        };
 
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text('Notification'),
-              content: Text('You have a debt to pay.'),
-              actions: [
-                TextButton(
-                  child: Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            ),
-          );
+        final message = {
+          'token': fcmToken,
+          'notification': notification,
+        };
+
+        final response = await http.post(
+          Uri.parse('https://fcm.googleapis.com/fcm/send'),
+          headers: headers,
+          body: jsonEncode(message),
+        );
+
+        if (response.statusCode == 200) {
+          print('Notification sent successfully to $friendUsername');
         } else {
-          throw Exception('User not found.');
+          print('Failed to send notification');
         }
       } else {
         throw Exception('Friend not found.');
