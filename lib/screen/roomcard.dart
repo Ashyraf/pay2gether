@@ -72,6 +72,7 @@ class _RoomCardState extends State<RoomCard> {
           itemBuilder: (context, index) {
             final roomData = filteredData[index].data() as Map<String, dynamic>;
             final roomName = roomData['roomName'] ?? '';
+            final roomMaster = roomData['roomMaster']; // Retrieve roomMaster
 
             // Retrieve bankAccounts from the debtRoom collection
             final bankAccounts = roomData['bankAccounts'] ?? [];
@@ -125,6 +126,8 @@ class _RoomCardState extends State<RoomCard> {
                           roomData: roomData,
                           roomName: roomName,
                           bankAccounts: bankAccounts,
+                          roomMaster:
+                              roomMaster, // Pass roomMaster to RoomCardExtend
                         ),
                       ),
                     );
