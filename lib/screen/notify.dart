@@ -1,42 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class Notify {
-  static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-  static Future<void> initializeNotifications(BuildContext context) async {
-    const initializationSettingsAndroid =
-        AndroidInitializationSettings('app_icon');
-    final initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  static final FirebaseMessaging _firebaseMessaging =
+      FirebaseMessaging.instance;
+
+  static Future<void> initializeNotifications() async {
+    // Initialize Firebase Messaging
+    await _firebaseMessaging.requestPermission();
   }
 
   static Future<void> sendNotification(
       BuildContext context, String friendName) async {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
+
       final friendSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .where('username', isEqualTo: friendName)
           .get();
+
       if (friendSnapshot.docs.isNotEmpty) {
         final friendDoc = friendSnapshot.docs.first;
         final friendEmail = friendDoc['email'];
+
         // Retrieve the user document based on the friendEmail
         final userSnapshot = await FirebaseFirestore.instance
             .collection('users')
             .where('email', isEqualTo: friendEmail)
             .get();
+
         if (userSnapshot.docs.isNotEmpty) {
           final userDoc = userSnapshot.docs.first;
-          // Extract the necessary information from the user document
           final userName = userDoc['username'];
-          // Send the notification to the user using your preferred method
-          // Replace the comment with your implementation to send the notification to the user identified by friendEmail
-          // You can use the userName and friendName variables to personalize the notification
+          final fcmToken = userDoc['fcmToken'];
+
+          // Replace this code with your server-side logic to send the notification
+          // Typically, you would make an API call to your backend server or use cloud functions to send the notification
+
           showDialog(
             context: context,
             builder: (context) => AlertDialog(

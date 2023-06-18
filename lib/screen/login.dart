@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:pay2gether/Utility/color.dart';
 import 'package:pay2gether/screen/homepage.dart';
@@ -7,7 +9,7 @@ import '../reusable_widget/reuse.dart';
 import 'register.dart';
 
 class Login extends StatefulWidget {
-  const Login({super.key});
+  const Login({Key? key}) : super(key: key);
 
   @override
   _LoginState createState() => _LoginState();
@@ -17,6 +19,26 @@ class _LoginState extends State<Login> {
   TextEditingController _usernameTextController = TextEditingController();
   TextEditingController _passwordTextController = TextEditingController();
   bool _isLoading = false;
+
+  Future<void> saveFCMToken(String email, String fcmToken) async {
+    DocumentSnapshot<Map<String, dynamic>> snapshot =
+        await FirebaseFirestore.instance.collection('users').doc(email).get();
+
+    Map<String, dynamic>? userData = snapshot.data();
+    String? existingFCMToken = userData?['fcmToken'];
+
+    if (existingFCMToken != null && existingFCMToken != fcmToken) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(email)
+          .update({'fcmToken': fcmToken});
+    } else if (existingFCMToken == null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(email)
+          .set({'fcmToken': fcmToken});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +83,7 @@ class _LoginState extends State<Login> {
                 SizedBox(height: 20),
                 _isLoading
                     ? CircularProgressIndicator() // Show loading indicator if _isLoading is true
-                    : logInButton(context, true, () {
+                    : logInButton(context, true, () async {
                         String usernameOrEmail =
                             _usernameTextController.text.trim();
                         String password = _passwordTextController.text.trim();
@@ -78,27 +100,42 @@ class _LoginState extends State<Login> {
                           _isLoading = true; // Start loading
                         });
 
-                        FirebaseAuth.instance
-                            .signInWithEmailAndPassword(
-                          email: email,
-                          password: password,
-                        )
-                            .then((value) {
-                          setState(() {
-                            _isLoading = false; // Stop loading
-                          });
-
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => HomePage()),
+                        try {
+                          UserCredential userCredential = await FirebaseAuth
+                              .instance
+                              .signInWithEmailAndPassword(
+                            email: email,
+                            password: password,
                           );
-                        }).catchError((error) {
+
                           setState(() {
                             _isLoading = false; // Stop loading
                           });
 
-                          print("ERROR: ${error.toString()}");
-                        });
+                          if (userCredential.user != null) {
+                            // Retrieve FCM token
+                            String? fcmToken =
+                                await FirebaseMessaging.instance.getToken();
+
+                            if (fcmToken != null) {
+                              // Save FCM token to Firestore
+                              await saveFCMToken(email, fcmToken);
+                            }
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HomePage(),
+                              ),
+                            );
+                          }
+                        } catch (error) {
+                          setState(() {
+                            _isLoading = false; // Stop loading
+                          });
+
+                          print("ERROR: $error");
+                        }
                       }),
                 registerOption(),
                 SizedBox(height: 120),
@@ -124,7 +161,10 @@ class _LoginState extends State<Login> {
           },
           child: const Text(
             "REGISTER HERE",
-            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: Colors.blue,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],
