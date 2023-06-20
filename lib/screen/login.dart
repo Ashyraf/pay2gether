@@ -1,6 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// ignore_for_file: unused_local_variable
+
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:pay2gether/Utility/color.dart';
 import 'package:pay2gether/screen/homepage.dart';
@@ -19,26 +19,6 @@ class _LoginState extends State<Login> {
   TextEditingController _usernameTextController = TextEditingController();
   TextEditingController _passwordTextController = TextEditingController();
   bool _isLoading = false;
-
-  Future<void> saveFCMToken(String email, String fcmToken) async {
-    DocumentSnapshot<Map<String, dynamic>> snapshot =
-        await FirebaseFirestore.instance.collection('users').doc(email).get();
-
-    Map<String, dynamic>? userData = snapshot.data();
-    String? existingFCMToken = userData?['fcmToken'];
-
-    if (existingFCMToken != null && existingFCMToken != fcmToken) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(email)
-          .update({'fcmToken': fcmToken});
-    } else if (existingFCMToken == null) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(email)
-          .set({'fcmToken': fcmToken});
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,24 +91,12 @@ class _LoginState extends State<Login> {
                           setState(() {
                             _isLoading = false; // Stop loading
                           });
-
-                          if (userCredential.user != null) {
-                            // Retrieve FCM token
-                            String? fcmToken =
-                                await FirebaseMessaging.instance.getToken();
-
-                            if (fcmToken != null) {
-                              // Save FCM token to Firestore
-                              await saveFCMToken(email, fcmToken);
-                            }
-
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => HomePage(),
-                              ),
-                            );
-                          }
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => HomePage(),
+                            ),
+                          );
                         } catch (error) {
                           setState(() {
                             _isLoading = false; // Stop loading

@@ -101,11 +101,15 @@ class _ProfilePageState extends State<ProfilePage> {
 
       await uploadTask.whenComplete(() async {
         String profileImageUrl = await storageRef.getDownloadURL();
-        await _firestore.collection('users').doc('username').update({
-          'profileImageUrl': profileImageUrl,
-        });
-        // Reload user data after updating profile image
-        await loadUserData();
+        User? user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          String currentUserEmail = user.email!;
+          await _firestore.collection('users').doc(currentUserEmail).update({
+            'profileImageUrl': profileImageUrl,
+          });
+          // Reload user data after updating profile image
+          await loadUserData();
+        }
       });
     }
   }
@@ -240,67 +244,33 @@ class _ProfilePageState extends State<ProfilePage> {
                   'Bank Account:',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 18.0,
+                    fontSize: 16.0,
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: 16.0),
-            Row(
-              children: [
-                Icon(Icons.add),
                 SizedBox(width: 8.0),
-                TextButton(
-                  onPressed: _isAddingBankAccount ? null : addBankAccount,
-                  child: Text('Add Bank Account'),
-                ),
+                _isAddingBankAccount
+                    ? IconButton(
+                        icon: Icon(Icons.save),
+                        onPressed: saveBankAccounts,
+                      )
+                    : IconButton(
+                        icon: Icon(Icons.add),
+                        onPressed: addBankAccount,
+                      ),
               ],
             ),
+            SizedBox(height: 8.0),
             if (_isAddingBankAccount)
-              Column(
-                children: [
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: _bankAccounts.length,
-                    itemBuilder: (context, index) {
-                      return buildBankAccountFields(_bankAccounts[index]);
-                    },
-                  ),
-                  SizedBox(height: 16.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      ElevatedButton(
-                        onPressed: saveBankAccounts,
-                        child: Text('Save'),
-                      ),
-                      SizedBox(width: 8.0),
-                      ElevatedButton(
-                        onPressed: cancelBankAccounts,
-                        child: Text('Cancel'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            SizedBox(height: 16.0),
-            if (_savedBankAccounts.isNotEmpty) ...[
-              Text(
-                'Saved Bank Accounts:',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18.0,
-                ),
-              ),
-              SizedBox(height: 16.0),
-              buildSavedBankAccounts(),
-            ],
+              ..._bankAccounts
+                  .map((bankAccount) => buildBankAccountFields(bankAccount))
+                  .toList(),
+            if (!_isAddingBankAccount) buildSavedBankAccounts(),
             SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: updateUser,
-              child: Text('Update'),
+              child: Text('Save Changes'),
             ),
+            SizedBox(height: 16.0),
           ],
         ),
       ),

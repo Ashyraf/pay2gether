@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'report.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'meetup.dart';
+import 'transfer.dart';
 
 class RoomCardExtend extends StatefulWidget {
   final Map<String, dynamic> roomData;
@@ -149,7 +151,8 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
                               ElevatedButton(
                                 child: Text('Payment'),
                                 onPressed: () {
-                                  // Handle payment button press
+                                  _showPaymentDialog(context, roomName,
+                                      friendName, debtAmount);
                                 },
                               ),
                               SizedBox(width: 8),
@@ -205,6 +208,54 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
         return ReportDialog(
           roomName: widget.roomName,
           friendName: friendName,
+        );
+      },
+    );
+  }
+
+  void _showPaymentDialog(BuildContext context, String roomName,
+      String friendName, double debtAmount) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Choose an action'),
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                child: Text('Set Meet-Up'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MeetupPage(
+                        roomName: roomName,
+                        friendName: friendName,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              ElevatedButton(
+                child: Text('Transfer'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TransferPage(
+                        roomName: roomName,
+                        friendName: friendName,
+                        debtAmount: debtAmount,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         );
       },
     );
