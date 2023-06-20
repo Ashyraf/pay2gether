@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -8,11 +9,13 @@ class TransferPage extends StatefulWidget {
   final String friendName;
   final double debtAmount;
   final String roomName;
+  final List<dynamic> bankAccounts;
 
   TransferPage({
     required this.friendName,
     required this.debtAmount,
     required this.roomName,
+    required this.bankAccounts,
   });
 
   @override
@@ -22,6 +25,14 @@ class TransferPage extends StatefulWidget {
 class _TransferPageState extends State<TransferPage> {
   final ImagePicker _imagePicker = ImagePicker();
   XFile? _imageFile;
+  bool _isImageSelected = false;
+
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Copied to clipboard')),
+    );
+  }
 
   Future<void> _uploadReceipt() async {
     if (_imageFile == null) {
@@ -59,12 +70,23 @@ class _TransferPageState extends State<TransferPage> {
     });
   }
 
+  Future<void> _pickImage() async {
+    final XFile? image =
+        await _imagePicker.pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      _imageFile = image;
+      _isImageSelected = true;
+    });
+  }
+
   Future<void> _takePicture() async {
     final XFile? image =
         await _imagePicker.pickImage(source: ImageSource.camera);
 
     setState(() {
       _imageFile = image;
+      _isImageSelected = true;
     });
   }
 
@@ -74,21 +96,76 @@ class _TransferPageState extends State<TransferPage> {
       appBar: AppBar(
         title: Text('Transfer Page'),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Friend Name: ${widget.friendName}'),
-          Text('Debt Amount: ${widget.debtAmount}'),
-          ElevatedButton(
-            onPressed: _uploadReceipt,
-            child: Text('Send Receipt'),
-          ),
-          ElevatedButton(
-            onPressed: _takePicture,
-            child: Text('Take Picture'),
-          ),
-          if (_imageFile != null) Image.file(File(_imageFile!.path)),
-        ],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (var account in widget.bankAccounts)
+                    Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('Bank Name: ${account['bankName']}'),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(' ${account['accountNumber']}'),
+                            IconButton(
+                              icon: Icon(Icons.copy),
+                              onPressed: () {
+                                _copyToClipboard(account['accountNumber']);
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+            Container(
+              width: 200,
+              height: 300,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+              ),
+              child: _isImageSelected
+                  ? Image.file(File(_imageFile!.path))
+                  : Center(child: Text('No image selected')),
+            ),
+            SizedBox(height: 16),
+            if (!_isImageSelected)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: _pickImage,
+                    child: Text('Select Image'),
+                  ),
+                  SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: _takePicture,
+                    child: Text('Take Picture'),
+                  ),
+                ],
+              ),
+            SizedBox(height: 16),
+            if (_isImageSelected)
+              ElevatedButton(
+                onPressed: _uploadReceipt,
+                child: Text('Upload Receipt'),
+              ),
+          ],
+        ),
       ),
     );
   }

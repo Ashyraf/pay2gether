@@ -87,11 +87,6 @@ class _MasterRoomCardState extends State<MasterRoomCard> {
               print('Status: $status');
             }
 
-            // Print roomData to inspect its fields
-            print('roomData: $roomData');
-            print(
-                'DocumentSnapshot data: ${snapshot.data!.docs[index].data()}');
-
             return Card(
               child: ListTile(
                 title: Text(roomName),

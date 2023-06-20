@@ -249,6 +249,7 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
                         roomName: roomName,
                         friendName: friendName,
                         debtAmount: debtAmount,
+                        bankAccounts: widget.bankAccounts,
                       ),
                     ),
                   );
