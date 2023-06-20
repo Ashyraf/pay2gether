@@ -25,12 +25,21 @@ class RoomCardExtend extends StatefulWidget {
 class _RoomCardExtendState extends State<RoomCardExtend> {
   late String currentUser;
   String roomMasterUsername = '';
+  bool isVerificationPending = false;
 
   @override
   void initState() {
     super.initState();
     fetchCurrentUser();
     fetchRoomMasterUsername();
+
+    // Check if a meet-up or payment has been done
+    if (widget.roomData['meetUp'] != null ||
+        widget.roomData['donePayment'] != null) {
+      setState(() {
+        isVerificationPending = true;
+      });
+    }
   }
 
   void fetchCurrentUser() async {
@@ -145,28 +154,30 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
                       ],
                     ),
                     trailing: isCurrentUser
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ElevatedButton(
-                                child: Text('Payment'),
-                                onPressed: () {
-                                  _showPaymentDialog(context, roomName,
-                                      friendName, debtAmount);
-                                },
-                              ),
-                              SizedBox(width: 8),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  primary: Colors.red,
-                                ),
-                                child: Text('Report'),
-                                onPressed: () {
-                                  _showReportDialog(context, friendName);
-                                },
-                              ),
-                            ],
-                          )
+                        ? isVerificationPending
+                            ? Text('Waiting Verification...')
+                            : Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ElevatedButton(
+                                    child: Text('Payment'),
+                                    onPressed: () {
+                                      _showPaymentDialog(context, roomName,
+                                          friendName, debtAmount);
+                                    },
+                                  ),
+                                  SizedBox(width: 8),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      primary: Colors.red,
+                                    ),
+                                    child: Text('Report'),
+                                    onPressed: () {
+                                      _showReportDialog(context, friendName);
+                                    },
+                                  ),
+                                ],
+                              )
                         : null,
                   ),
                 );
