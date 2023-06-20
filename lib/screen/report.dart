@@ -40,15 +40,15 @@ class _ReportDialogState extends State<ReportDialog> {
             },
             items: [
               DropdownMenuItem(
-                value: 'Reason 1',
+                value: 'wrong room',
                 child: Text('Added in the wrong Room.'),
               ),
               DropdownMenuItem(
-                value: 'Reason 2',
+                value: 'wrong amount',
                 child: Text('Wrong amount of debt.'),
               ),
               DropdownMenuItem(
-                value: 'Reason 3',
+                value: 'another reason',
                 child: Text('others.'),
               ),
             ],
@@ -87,21 +87,35 @@ class _ReportDialogState extends State<ReportDialog> {
 
   void _sendReport() {
     final report = {
-      'reportertName': widget.friendName,
+      'reporterName': widget.friendName,
       'roomName': widget.roomName,
       'reason': selectedReason,
       'optionalReason': optionalReason,
     };
 
-    FirebaseFirestore.instance.collection('debtRoom').doc(widget.roomName).set({
-      'reports': [report]
-    }, SetOptions(merge: true)).then((value) {
-      // Report sent successfully
-      print('Report sent successfully!');
-      _sendNotificationToRoomMaster(widget.roomName);
-    }).catchError((error) {
-      // Error occurred while sending the report
-      print('Error sending report: $error');
+    FirebaseFirestore.instance
+        .collection('debtRoom')
+        .doc(widget.roomName)
+        .get()
+        .then((roomSnapshot) {
+      if (roomSnapshot.exists) {
+        final existingReports = roomSnapshot.data()?['reports'] ?? [];
+        final updatedReports = [...existingReports, report];
+
+        FirebaseFirestore.instance
+            .collection('debtRoom')
+            .doc(widget.roomName)
+            .update({'reports': updatedReports}).then((value) {
+          // Report sent successfully
+          print('Report sent successfully!');
+          _sendNotificationToRoomMaster(widget.roomName);
+        }).catchError((error) {
+          // Error occurred while sending the report
+          print('Error sending report: $error');
+        });
+      } else {
+        print('Debt room not found.');
+      }
     });
   }
 

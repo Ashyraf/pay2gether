@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pay2gether/screen/notify.dart'; // Import the notify.dart file
+import 'package:pay2gether/screen/notify.dart';
+import 'managereport.dart'; // Import the managereport.dart file
 
 class MasterRoomCardExtend extends StatelessWidget {
   final Map<String, dynamic> roomData;
@@ -23,6 +24,7 @@ class MasterRoomCardExtend extends StatelessWidget {
           final friendName = friend['friendName'];
           final debtAmount = friend['debtAmount'];
           final status = friend['status'];
+          final hasReport = hasFriendReport(roomData, friendName);
 
           return Card(
             child: ListTile(
@@ -43,19 +45,53 @@ class MasterRoomCardExtend extends StatelessWidget {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ElevatedButton(
-                    child: Text('Verified'),
-                    onPressed: () {
-                      // Handle verified button press
-                    },
-                  ),
-                  SizedBox(width: 8),
-                  ElevatedButton(
-                    child: Text('Notify'),
-                    onPressed: () {
-                      Notify.sendNotification(context, friendName);
-                    },
-                  ),
+                  if (!hasReport) ...[
+                    ElevatedButton(
+                      child: Text('Verified'),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return ManageReportDialog(
+                              friendName: friendName,
+                              roomData: roomData,
+                            );
+                          },
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.green,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    ElevatedButton(
+                      child: Text('Notify'),
+                      onPressed: () {
+                        Notify.sendNotification(context, friendName);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.blue,
+                      ),
+                    ),
+                  ] else ...[
+                    ElevatedButton(
+                      child: Text('View Report'),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return ManageReportDialog(
+                              friendName: friendName,
+                              roomData: roomData,
+                            );
+                          },
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.red,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -86,5 +122,21 @@ class MasterRoomCardExtend extends StatelessWidget {
       radius: 10,
       backgroundColor: circleColor,
     );
+  }
+
+  bool hasFriendReport(Map<String, dynamic> roomData, String friendName) {
+    final reports = roomData['reports'] as List<dynamic>?;
+
+    if (reports != null) {
+      for (final report in reports) {
+        final reporterName = report['reporterName'];
+
+        if (reporterName == friendName) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 }
