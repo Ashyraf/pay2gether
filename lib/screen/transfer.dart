@@ -103,33 +103,35 @@ class _TransferPageState extends State<TransferPage> {
           children: [
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (var account in widget.bankAccounts)
-                    Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text('Bank Name: ${account['bankName']}'),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(' ${account['accountNumber']}'),
-                            IconButton(
-                              icon: Icon(Icons.copy),
-                              onPressed: () {
-                                _copyToClipboard(account['accountNumber']);
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                ],
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: widget.bankAccounts.length,
+                itemBuilder: (context, index) {
+                  final account = widget.bankAccounts[index];
+                  return Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Bank Name: ${account['bankName']}'),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(' ${account['accountNumber']}'),
+                          IconButton(
+                            icon: Icon(Icons.copy),
+                            onPressed: () {
+                              _copyToClipboard(account['accountNumber']);
+                            },
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                    ],
+                  );
+                },
               ),
             ),
             Container(
