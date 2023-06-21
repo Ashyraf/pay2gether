@@ -34,8 +34,7 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
     fetchRoomMasterUsername();
 
     // Check if a meet-up or payment has been done
-    if (widget.roomData['meetUp'] != null ||
-        widget.roomData['donePayment'] != null) {
+    if (widget.roomData['Payment'] != null) {
       setState(() {
         isVerificationPending = true;
       });

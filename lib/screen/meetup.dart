@@ -55,6 +55,7 @@ class _MeetupPageState extends State<MeetupPage> {
         'time': selectedTime!.format(context),
         'location': locationController.text,
         'friendName': widget.friendName,
+        'option': "Meet Up",
       };
 
       FirebaseFirestore.instance

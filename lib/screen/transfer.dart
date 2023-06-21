@@ -53,10 +53,11 @@ class _TransferPageState extends State<TransferPage> {
           .doc(widget.roomName)
           .set(
         {
-          'donePayment': {
+          'Payment': {
             'receiptUrl': receiptUrl,
             'friendName': widget.friendName,
             'debtAmount': widget.debtAmount,
+            'option': "Online Transfer",
           }
         },
         SetOptions(merge: true),
