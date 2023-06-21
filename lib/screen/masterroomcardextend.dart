@@ -298,19 +298,50 @@ class _MasterRoomCardExtendState extends State<MasterRoomCardExtend> {
   void _verifyFriendPayment(String friendName) {
     final roomName = widget.roomName;
 
-    // Update the friend's status to "verified" in the room document
-    FirebaseFirestore.instance.collection('debtRoom').doc(roomName).update({
-      'selectedFriends': FieldValue.arrayUnion([
-        {
-          'friendName': friendName,
-          'debtAmount': 0.0,
-          'status': 'verified',
-        }
-      ]),
-    }).then((value) {
-      print('Friend payment verified successfully.');
+    // Get a reference to the room document
+    final roomRef =
+        FirebaseFirestore.instance.collection('debtRoom').doc(roomName);
+
+    roomRef.get().then((snapshot) {
+      if (snapshot.exists) {
+        final roomData = snapshot.data() as Map<String, dynamic>;
+        final selectedFriends = roomData['selectedFriends'] as List<dynamic>;
+
+        double totalDebt = 0.0;
+
+        final updatedFriends = selectedFriends.map((friend) {
+          final friendNameData = friend['friendName'];
+          final debtAmount =
+              friend['debtAmount'].toDouble(); // Convert debtAmount to double
+
+          if (friendNameData == friendName) {
+            // Update the existing fields if friendName matches
+            friend['status'] = 'verified';
+          }
+
+          // Accumulate the debt amounts
+          totalDebt += debtAmount;
+
+          return friend;
+        }).toList();
+
+        // Update the 'selectedFriends' and 'totalDebt' fields in the room document
+        roomRef.update({
+          'selectedFriends': updatedFriends,
+          'totalDebt': totalDebt,
+        }).then((_) {
+          print('Friend payment verified successfully');
+          setState(() {
+            // Refresh the UI to reflect the changes
+          });
+        }).catchError((error) {
+          print('Failed to verify friend payment: $error');
+          // Show an error dialog
+        });
+      }
     }).catchError((error) {
-      print('Error verifying friend payment: $error');
+      print('Error retrieving room data: $error');
+      // Show an error dialog
     });
   }
 }
