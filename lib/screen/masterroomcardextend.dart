@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pay2gether/screen/notify.dart';
 import 'managereport.dart'; // Import the managereport.dart file
 
@@ -74,7 +76,8 @@ class _MasterRoomCardExtendState extends State<MasterRoomCardExtend> {
             } else if (meetupData != null &&
                 meetupData['friendName'] == friendName) {
               final location = meetupData['location'];
-              final date = meetupData['date'];
+              final date = formatDate((meetupData['date'] as Timestamp)
+                  .toDate()); // Convert Timestamp to DateTime and format it
               final time = meetupData['time'];
 
               paymentDetailsWidget = Column(
@@ -91,7 +94,7 @@ class _MasterRoomCardExtendState extends State<MasterRoomCardExtend> {
                   SizedBox(height: 8),
                   Text('Payment Option: Meet Up'),
                   Text('Location: $location'),
-                  Text('Date: $date'),
+                  Text('Date: $date'), // Display the formatted date
                   Text('Time: $time'),
                 ],
               );
@@ -210,6 +213,11 @@ class _MasterRoomCardExtendState extends State<MasterRoomCardExtend> {
       radius: 10,
       backgroundColor: circleColor,
     );
+  }
+
+  String formatDate(DateTime date) {
+    final DateFormat formatter = DateFormat('MMM d, yyyy');
+    return formatter.format(date);
   }
 
   bool hasFriendReport(Map<String, dynamic> roomData, String friendName) {
