@@ -47,7 +47,7 @@ class _TransferPageState extends State<TransferPage> {
     await uploadTask.whenComplete(() async {
       final String receiptUrl = await storageRef.getDownloadURL();
 
-      // Save the receipt data in the 'donePayment' document in the 'debtRoom' collection
+      // Save the receipt data in the 'Payment' document in the 'debtRoom' collection
       FirebaseFirestore.instance
           .collection('debtRoom')
           .doc(widget.roomName)
