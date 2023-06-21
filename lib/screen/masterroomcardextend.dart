@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pay2gether/screen/notify.dart';
-import 'managereport.dart'; // Import the managereport.dart file
+import 'managereport.dart';
 
 class MasterRoomCardExtend extends StatefulWidget {
   final Map<String, dynamic> roomData;
@@ -148,15 +148,7 @@ class _MasterRoomCardExtendState extends State<MasterRoomCardExtend> {
                     ElevatedButton(
                       child: Text('Verified'),
                       onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return ManageReportDialog(
-                              friendName: friendName,
-                              roomData: widget.roomData,
-                            );
-                          },
-                        );
+                        _verifyFriendPayment(friendName);
                       },
                       style: ElevatedButton.styleFrom(
                         primary: Colors.green,
@@ -301,5 +293,24 @@ class _MasterRoomCardExtendState extends State<MasterRoomCardExtend> {
         ),
       );
     }
+  }
+
+  void _verifyFriendPayment(String friendName) {
+    final roomName = widget.roomName;
+
+    // Update the friend's status to "verified" in the room document
+    FirebaseFirestore.instance.collection('debtRoom').doc(roomName).update({
+      'selectedFriends': FieldValue.arrayUnion([
+        {
+          'friendName': friendName,
+          'debtAmount': 0.0,
+          'status': 'verified',
+        }
+      ]),
+    }).then((value) {
+      print('Friend payment verified successfully.');
+    }).catchError((error) {
+      print('Error verifying friend payment: $error');
+    });
   }
 }
