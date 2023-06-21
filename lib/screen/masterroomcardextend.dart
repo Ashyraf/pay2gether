@@ -1,7 +1,8 @@
 import 'dart:io';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pay2gether/screen/notify.dart';
 import 'managereport.dart'; // Import the managereport.dart file
@@ -72,13 +73,19 @@ class _MasterRoomCardExtendState extends State<MasterRoomCardExtend> {
                   ),
                   SizedBox(height: 8),
                   Text('Payment Option: Online Transfer'),
-                  Text('Receipt URL: $receiptUrl'),
+                  IconButton(
+                    icon: Icon(Icons.picture_as_pdf),
+                    onPressed: () {
+                      _downloadReceipt(receiptUrl);
+                    },
+                  ),
                 ],
               );
             } else if (meetupData != null &&
                 meetupData['friendName'] == friendName) {
               final location = meetupData['location'];
-              final date = meetupData['date'];
+              final date = formatDate((meetupData['date'] as Timestamp)
+                  .toDate()); // Convert Timestamp to DateTime and format it
               final time = meetupData['time'];
 
               paymentDetailsWidget = Column(
@@ -95,8 +102,7 @@ class _MasterRoomCardExtendState extends State<MasterRoomCardExtend> {
                   SizedBox(height: 8),
                   Text('Payment Option: Meet Up'),
                   Text('Location: $location'),
-                  Text(
-                      'Date: ${DateTime.fromMillisecondsSinceEpoch(date).toString()}'),
+                  Text('Date: $date'), // Display the formatted date
                   Text('Time: $time'),
                 ],
               );
@@ -194,6 +200,11 @@ class _MasterRoomCardExtendState extends State<MasterRoomCardExtend> {
     );
   }
 
+  String formatDate(DateTime date) {
+    final DateFormat formatter = DateFormat('MMM d, yyyy');
+    return formatter.format(date);
+  }
+
   Widget _buildCircleAvatar(String status) {
     Color? circleColor;
     switch (status) {
@@ -210,7 +221,6 @@ class _MasterRoomCardExtendState extends State<MasterRoomCardExtend> {
         circleColor = Colors.grey;
         break;
     }
-
     return CircleAvatar(
       radius: 10,
       backgroundColor: circleColor,
@@ -231,5 +241,65 @@ class _MasterRoomCardExtendState extends State<MasterRoomCardExtend> {
     }
 
     return false;
+  }
+
+  Future<void> _downloadReceipt(String receiptUrl) async {
+    try {
+      // Get the Firebase Storage reference from the receipt URL
+      final ref =
+          firebase_storage.FirebaseStorage.instance.refFromURL(receiptUrl);
+
+      // Download the image to a temporary location on the device
+      final bytes = await ref.getData();
+
+      // Create a unique file name for the downloaded image
+      final fileName =
+          'receipt_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      // Save the image to the device's temporary directory
+      final directory = await getTemporaryDirectory();
+      final filePath = '${directory.path}/$fileName';
+      final file = File(filePath);
+      await file.writeAsBytes(bytes!);
+
+      print('Receipt image downloaded successfully. File path: $filePath');
+
+      // Display the downloaded image using an Image widget
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Receipt Image'),
+          content: Image.file(file),
+          actions: [
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                // Close the dialog
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      print('Error downloading receipt image: $e');
+      // Display an error message
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Error'),
+          content: Text('Failed to download receipt image.'),
+          actions: [
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                // Close the dialog
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
+    }
   }
 }
