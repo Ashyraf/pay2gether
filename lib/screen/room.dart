@@ -12,6 +12,7 @@ class RoomPage extends StatefulWidget {
 
   static Widget createRoomButton(BuildContext context) {
     final roomNameController = TextEditingController();
+    String? selectedCategory; // New variable to store the selected category
 
     // Initialize selectedFriends list
     List<Map<String, dynamic>> selectedFriends = [];
@@ -113,6 +114,48 @@ class RoomPage extends StatefulWidget {
                                 controller: roomNameController,
                               ),
                               SizedBox(height: 16),
+                              DropdownButtonFormField(
+                                value: selectedCategory,
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    selectedCategory = newValue as String?;
+                                  });
+                                },
+                                items: [
+                                  DropdownMenuItem(
+                                    value: 'Movie',
+                                    child: Text('Movie'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'Leisure',
+                                    child: Text('Leisure'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'Food',
+                                    child: Text('Food'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'Utilities',
+                                    child: Text('Utilities'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'House Rent',
+                                    child: Text('House Rent'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'Vacation',
+                                    child: Text('Vacation'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'Hobbies',
+                                    child: Text('Hobbies'),
+                                  ),
+                                ],
+                                decoration: InputDecoration(
+                                  labelText: 'Category',
+                                ),
+                              ),
+                              SizedBox(height: 16),
                               AddPeopleForm(
                                 selectedFriends: selectedFriends,
                                 addFriendWithDebt: addFriendWithDebt,
@@ -149,6 +192,8 @@ class RoomPage extends StatefulWidget {
                           'totalDebt': calculateTotalDebt(),
                           'bankAccounts':
                               bankAccounts, // Include bank account data
+                          'category':
+                              selectedCategory, // Include selected category
                           // Add other relevant data as needed
                         }).then((value) {
                           // Success
