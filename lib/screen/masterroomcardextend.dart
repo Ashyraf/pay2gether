@@ -311,15 +311,12 @@ class _MasterRoomCardExtendState extends State<MasterRoomCardExtend> {
 
         final updatedFriends = selectedFriends.map((friend) {
           final friendNameData = friend['friendName'];
-          final debtAmount =
-              friend['debtAmount'].toDouble(); // Convert debtAmount to double
+          final debtAmount = friend['debtAmount'].toDouble();
 
           if (friendNameData == friendName) {
-            // Update the existing fields if friendName matches
             friend['status'] = 'verified';
           }
 
-          // Accumulate the debt amounts
           totalDebt += debtAmount;
 
           return friend;
@@ -331,6 +328,26 @@ class _MasterRoomCardExtendState extends State<MasterRoomCardExtend> {
           'totalDebt': totalDebt,
         }).then((_) {
           print('Friend payment verified successfully');
+
+          // Show verification success pop-up
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text('Verification Success'),
+                content: Text('Friend payment has been successfully verified.'),
+                actions: [
+                  TextButton(
+                    child: Text('OK'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+
           setState(() {
             // Refresh the UI to reflect the changes
           });

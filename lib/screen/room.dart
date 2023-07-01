@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -26,25 +25,6 @@ class RoomPage extends StatefulWidget {
     double calculateTotalDebt() {
       return selectedFriends.fold(
           0.0, (sum, friend) => sum + friend['debtAmount']);
-    }
-
-    // Function to retrieve current user's bank accounts
-    Future<List<Map<String, dynamic>>> getCurrentUserBankAccounts() async {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      final currentUserEmail = currentUser?.email;
-
-      if (currentUserEmail != null) {
-        final snapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUserEmail)
-            .get();
-        final userData = snapshot.data();
-        if (userData != null && userData['bankAccounts'] != null) {
-          return List<Map<String, dynamic>>.from(userData['bankAccounts']);
-        }
-      }
-
-      return [];
     }
 
     return ElevatedButton(
@@ -100,12 +80,6 @@ class RoomPage extends StatefulWidget {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              AddReceiptButton(
-                                onReceiptImageSelected: (File imageFile) {
-                                  // Handle the selected receipt image here
-                                },
-                              ),
-                              SizedBox(height: 16),
                               TextField(
                                 decoration: InputDecoration(
                                   hintText: 'Room name',
@@ -168,12 +142,10 @@ class RoomPage extends StatefulWidget {
                   ),
                   actions: [
                     ElevatedButton(
-                      onPressed: () async {
+                      onPressed: () {
                         final roomName = roomNameController.text.trim();
                         final currentUser = FirebaseAuth.instance.currentUser;
                         final currentUserEmail = currentUser?.email;
-
-                        final bankAccounts = await getCurrentUserBankAccounts();
 
                         FirebaseFirestore.instance
                             .collection('debtRoom')
@@ -189,8 +161,6 @@ class RoomPage extends StatefulWidget {
                             };
                           }).toList(),
                           'totalDebt': calculateTotalDebt(),
-                          'bankAccounts':
-                              bankAccounts, // Include bank account data
                           'category':
                               selectedCategory, // Include selected category
                           // Add other relevant data as needed
@@ -301,15 +271,36 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
               // Clear the text fields
               _friendNameController.clear();
               _debtAmountController.clear();
-
-              // Rebuild the parent widget to update the total debt display
-              setState(() {});
+            } else {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Error'),
+                    content:
+                        Text('Please enter valid friend name and debt amount.'),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text('OK'),
+                      ),
+                    ],
+                  );
+                },
+              );
             }
           },
           child: Text('Add Friend'),
         ),
         SizedBox(height: 16),
-        Text('Total Debt: \$${widget.calculateTotalDebt().toStringAsFixed(2)}'),
+        Text(
+          'Total Debt: \$${widget.calculateTotalDebt().toStringAsFixed(2)}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         SizedBox(height: 16),
         ListView.builder(
           shrinkWrap: true,
@@ -318,34 +309,13 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
             final friend = widget.selectedFriends[index];
             return ListTile(
               title: Text(friend['friendName']),
-              subtitle: Text('\$${friend['debtAmount'].toStringAsFixed(2)}'),
+              subtitle: Text(
+                  'Debt Amount: \$${friend['debtAmount'].toStringAsFixed(2)}'),
+              trailing: Text('Status: ${friend['status']}'),
             );
           },
         ),
       ],
-    );
-  }
-}
-
-class AddReceiptButton extends StatelessWidget {
-  final Function(File) onReceiptImageSelected;
-
-  const AddReceiptButton({Key? key, required this.onReceiptImageSelected})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () async {
-        final ImagePicker _picker = ImagePicker();
-        final XFile? image =
-            await _picker.pickImage(source: ImageSource.gallery);
-        if (image != null) {
-          final imageFile = File(image.path);
-          onReceiptImageSelected(imageFile);
-        }
-      },
-      child: Text('Add Receipt'),
     );
   }
 }

@@ -1,7 +1,7 @@
 // ignore_for_file: unused_local_variable
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pay2gether/Utility/color.dart';
 import 'package:pay2gether/screen/homepage.dart';
 
@@ -19,6 +19,26 @@ class _LoginState extends State<Login> {
   TextEditingController _usernameTextController = TextEditingController();
   TextEditingController _passwordTextController = TextEditingController();
   bool _isLoading = false;
+
+  void showErrorDialog(String error) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(error),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,22 +82,20 @@ class _LoginState extends State<Login> {
                 ),
                 SizedBox(height: 20),
                 _isLoading
-                    ? CircularProgressIndicator() // Show loading indicator if _isLoading is true
+                    ? CircularProgressIndicator()
                     : logInButton(context, true, () async {
                         String usernameOrEmail =
                             _usernameTextController.text.trim();
                         String password = _passwordTextController.text.trim();
                         String email;
                         if (usernameOrEmail.contains('@')) {
-                          // If the input contains '@', consider it as an email
                           email = usernameOrEmail;
                         } else {
-                          // Otherwise, create a dummy email using the username
                           email = "$usernameOrEmail@gmail.com";
                         }
 
                         setState(() {
-                          _isLoading = true; // Start loading
+                          _isLoading = true;
                         });
 
                         try {
@@ -89,8 +107,9 @@ class _LoginState extends State<Login> {
                           );
 
                           setState(() {
-                            _isLoading = false; // Stop loading
+                            _isLoading = false;
                           });
+
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -99,10 +118,10 @@ class _LoginState extends State<Login> {
                           );
                         } catch (error) {
                           setState(() {
-                            _isLoading = false; // Stop loading
+                            _isLoading = false;
                           });
 
-                          print("ERROR: $error");
+                          showErrorDialog("An error occurred: $error");
                         }
                       }),
                 registerOption(),
