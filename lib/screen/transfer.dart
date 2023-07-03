@@ -63,7 +63,12 @@ class _TransferPageState extends State<TransferPage> {
         SetOptions(merge: true),
       ).then((_) {
         print('Receipt data saved successfully');
-        // Show a success message or perform any other actions
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Receipt uploaded successfully')),
+        );
+        setState(() {
+          _isImageSelected = false; // Reset image selection
+        });
       }).catchError((error) {
         print('Error saving receipt data: $error');
         // Show an error message or handle the error

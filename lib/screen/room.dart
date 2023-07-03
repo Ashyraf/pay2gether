@@ -161,8 +161,9 @@ class RoomPage extends StatefulWidget {
                             };
                           }).toList(),
                           'totalDebt': calculateTotalDebt(),
-                          'category':
-                              selectedCategory, // Include selected category
+                          'category': selectedCategory,
+                          'bankAccounts':
+                              bankAccounts, // Include selected category
                           // Add other relevant data as needed
                         }).then((value) {
                           // Success

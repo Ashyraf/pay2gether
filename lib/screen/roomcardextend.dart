@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'report.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'report.dart';
 import 'meetup.dart';
 import 'transfer.dart';
 
@@ -26,6 +28,8 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
   late String currentUser;
   String roomMasterUsername = '';
   bool isVerificationPending = false;
+  bool isPaymentDone = false;
+  late StreamSubscription<DocumentSnapshot> statusSubscription;
 
   @override
   void initState() {
@@ -39,6 +43,49 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
         isVerificationPending = true;
       });
     }
+
+    // Subscribe to real-time updates for the friend's status
+    final roomDocument =
+        FirebaseFirestore.instance.collection('debtRoom').doc(widget.roomName);
+    statusSubscription = roomDocument.snapshots().listen((snapshot) {
+      if (snapshot.exists) {
+        final selectedFriends = snapshot.data()?['selectedFriends'];
+        final currentUserData = selectedFriends.firstWhere(
+          (friend) => friend['friendName'] == currentUser,
+          orElse: () => null,
+        );
+        if (currentUserData != null) {
+          final status = currentUserData['status'];
+          if (status == 'verified') {
+            setState(() {
+              // Update the specific friend's status
+              currentUserData['isVerificationPending'] = false;
+            });
+            // Update the document with the modified selectedFriends list
+            roomDocument.update({'selectedFriends': selectedFriends});
+          } else if (status == 'pending') {
+            // Check if there is a payment under the friendName
+            final paymentExists = widget.roomData['Payment'] != null &&
+                widget.roomData['Payment'][currentUser] != null;
+            if (paymentExists) {
+              setState(() {
+                // Update the specific friend's status
+                currentUserData['status'] = 'verification';
+              });
+              // Update the document with the modified selectedFriends list
+              roomDocument.update({'selectedFriends': selectedFriends});
+            }
+          }
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    statusSubscription
+        .cancel(); // Cancel the subscription to avoid memory leaks
+    super.dispose();
   }
 
   void fetchCurrentUser() async {
@@ -132,6 +179,8 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
                 final friendName = friend['friendName'];
                 final debtAmount = friend['debtAmount'];
                 final status = friend['status'];
+                final isVerificationPending =
+                    friend['isVerificationPending'] ?? false;
 
                 final isCurrentUser = friendName ==
                     FirebaseAuth.instance.currentUser?.displayName;
@@ -155,28 +204,31 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
                     trailing: isCurrentUser
                         ? isVerificationPending
                             ? Text('Waiting Verification...')
-                            : Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  ElevatedButton(
-                                    child: Text('Payment'),
-                                    onPressed: () {
-                                      _showPaymentDialog(context, roomName,
-                                          friendName, debtAmount);
-                                    },
-                                  ),
-                                  SizedBox(width: 8),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      primary: Colors.red,
-                                    ),
-                                    child: Text('Report'),
-                                    onPressed: () {
-                                      _showReportDialog(context, friendName);
-                                    },
-                                  ),
-                                ],
-                              )
+                            : isPaymentDone
+                                ? Text('Done Payment!')
+                                : Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      ElevatedButton(
+                                        child: Text('Payment'),
+                                        onPressed: () {
+                                          _showPaymentDialog(context, roomName,
+                                              friendName, debtAmount);
+                                        },
+                                      ),
+                                      SizedBox(width: 8),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          primary: Colors.red,
+                                        ),
+                                        child: Text('Report'),
+                                        onPressed: () {
+                                          _showReportDialog(
+                                              context, friendName);
+                                        },
+                                      ),
+                                    ],
+                                  )
                         : null,
                   ),
                 );
