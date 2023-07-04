@@ -157,13 +157,14 @@ class RoomPage extends StatefulWidget {
                             return {
                               'friendName': friend['friendName'],
                               'debtAmount': friend['debtAmount'],
+                              'debtDetails':
+                                  friend['debtDetails'], // Include debt details
                               'status': 'pending',
                             };
                           }).toList(),
                           'totalDebt': calculateTotalDebt(),
                           'category': selectedCategory,
-                          'bankAccounts':
-                              bankAccounts, // Include selected category
+                          'bankAccounts': bankAccounts,
                           // Add other relevant data as needed
                         }).then((value) {
                           // Success
