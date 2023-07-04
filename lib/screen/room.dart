@@ -233,7 +233,48 @@ class AddPeopleForm extends StatefulWidget {
 
 class _AddPeopleFormState extends State<AddPeopleForm> {
   final _friendNameController = TextEditingController();
-  final _debtAmountController = TextEditingController();
+  final _itemController = TextEditingController();
+  final _itemCostController = TextEditingController();
+
+  List<Map<String, dynamic>> debtDetails = [];
+
+  void addDebtDetail() {
+    final item = _itemController.text.trim();
+    final itemCost = double.tryParse(_itemCostController.text) ?? 0.0;
+
+    if (item.isNotEmpty && itemCost > 0) {
+      final debtDetail = {
+        'item': item,
+        'itemCost': itemCost,
+      };
+
+      setState(() {
+        debtDetails.add(debtDetail);
+      });
+
+      // Clear the text fields
+      _itemController.clear();
+      _itemCostController.clear();
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text('Please enter a valid item and item cost.'),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -246,40 +287,75 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
           controller: _friendNameController,
         ),
         SizedBox(height: 16),
-        TextField(
-          decoration: InputDecoration(
-            hintText: 'Debt Amount',
-          ),
-          controller: _debtAmountController,
-          keyboardType: TextInputType.number,
+        ListView.builder(
+          shrinkWrap: true,
+          itemCount: debtDetails.length,
+          itemBuilder: (BuildContext context, int index) {
+            final debtDetail = debtDetails[index];
+            return ListTile(
+              title: Text(debtDetail['item']),
+              subtitle: Text(
+                  'Item Cost: \$${debtDetail['itemCost'].toStringAsFixed(2)}'),
+            );
+          },
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Item',
+                ),
+                controller: _itemController,
+              ),
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Item Cost',
+                ),
+                controller: _itemCostController,
+                keyboardType: TextInputType.number,
+              ),
+            ),
+            IconButton(
+              onPressed: addDebtDetail,
+              icon: Icon(Icons.add),
+            ),
+          ],
         ),
         SizedBox(height: 16),
         ElevatedButton(
           onPressed: () {
             final friendName = _friendNameController.text.trim();
-            final debtAmount =
-                double.tryParse(_debtAmountController.text) ?? 0.0;
 
-            if (friendName.isNotEmpty && debtAmount > 0) {
+            if (friendName.isNotEmpty && debtDetails.isNotEmpty) {
               final friend = {
                 'friendName': friendName,
-                'debtAmount': debtAmount,
+                'debtAmount': debtDetails.fold(
+                    0.0, (sum, detail) => sum + detail['itemCost']),
+                'debtDetails': debtDetails,
               };
 
               // Call the addFriendWithDebt function from the parent widget
               widget.addFriendWithDebt(friend);
 
-              // Clear the text fields
+              // Clear the text fields and debt details
               _friendNameController.clear();
-              _debtAmountController.clear();
+              _itemController.clear();
+              _itemCostController.clear();
+              setState(() {
+                debtDetails = [];
+              });
             } else {
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
                     title: Text('Error'),
-                    content:
-                        Text('Please enter valid friend name and debt amount.'),
+                    content: Text(
+                        'Please enter a valid friend name and debt details.'),
                     actions: [
                       ElevatedButton(
                         onPressed: () {
