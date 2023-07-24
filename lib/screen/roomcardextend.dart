@@ -179,19 +179,37 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
                 final friendName = friend['friendName'];
                 final debtAmount = friend['debtAmount'];
                 final status = friend['status'];
-                final isVerificationPending =
-                    friend['isVerificationPending'] ?? false;
+                final debtDetails = friend['debtDetails'];
 
                 final isCurrentUser = friendName ==
                     FirebaseAuth.instance.currentUser?.displayName;
 
                 return Card(
                   child: ListTile(
-                    title: Text('Friend Name: $friendName'),
+                    title: Text('$friendName'),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Debt Amount: \$${debtAmount.toStringAsFixed(2)}'),
+                        if (debtDetails !=
+                            null) // Check if debtDetails is not null
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: 8),
+                              for (var itemDetails
+                                  in debtDetails) // Loop through the array
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Item: ${itemDetails['item']}'),
+                                    Text(
+                                        'Cost: \$${itemDetails['itemCost'].toStringAsFixed(2)}'),
+                                    SizedBox(height: 8),
+                                  ],
+                                ),
+                            ],
+                          ),
                         SizedBox(height: 8),
                         Row(
                           children: [
