@@ -4,7 +4,8 @@ import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pay2gether/screen/notify.dart';
+import 'package:pay2gether/screen/MasterRoom/notify.dart';
+
 import 'managereport.dart';
 
 class MasterRoomCardExtend extends StatefulWidget {

@@ -1,12 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../reusable_widget/reuse.dart';
-import 'friend.dart';
-import 'login.dart';
+import 'package:pay2gether/reusable_widget/reuse.dart';
+import 'package:pay2gether/screen/Friend/friend.dart';
+import 'package:pay2gether/screen/LoginRegister/login.dart';
+import 'package:pay2gether/screen/MasterRoom/masterroomcard.dart';
+import 'package:pay2gether/screen/RoomUser/roomcard.dart';
+
 import 'profile_page.dart';
 import 'room.dart';
-import 'roomcard.dart';
-import 'masterroomcard.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);

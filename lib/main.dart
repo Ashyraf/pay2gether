@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:pay2gether/auth.dart';
-import 'package:pay2gether/screen/notify.dart';
+import 'package:pay2gether/screen/MasterRoom/notify.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

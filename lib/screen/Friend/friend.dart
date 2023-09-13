@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../reusable_widget/reuse.dart';
+import 'package:pay2gether/reusable_widget/reuse.dart';
 
 class Friend extends StatefulWidget {
   const Friend({Key? key}) : super(key: key);

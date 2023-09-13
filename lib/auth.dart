@@ -1,7 +1,7 @@
-import 'package:pay2gether/screen/login.dart';
-import 'package:pay2gether/screen/homepage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pay2gether/screen/HomeMain/homepage.dart';
+import 'package:pay2gether/screen/LoginRegister/login.dart';
 
 class Auth extends StatelessWidget {
   const Auth({super.key});

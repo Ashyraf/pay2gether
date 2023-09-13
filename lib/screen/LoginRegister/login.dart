@@ -3,9 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pay2gether/Utility/color.dart';
-import 'package:pay2gether/screen/homepage.dart';
-
-import '../reusable_widget/reuse.dart';
+import 'package:pay2gether/reusable_widget/reuse.dart';
+import 'package:pay2gether/screen/HomeMain/homepage.dart';
 import 'register.dart';
 
 class Login extends StatefulWidget {
