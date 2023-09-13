@@ -79,6 +79,11 @@ class _ProfilePageState extends State<ProfilePage> {
         'bankAccounts': _savedBankAccounts,
       }, SetOptions(merge: true));
 
+      // Save bank account information in the "bankInformation" collection
+      await _firestore.collection('bankInformation').doc(currentUserEmail).set({
+        'bankAccounts': _savedBankAccounts,
+      });
+
       // Reload user data after updating
       await loadUserData();
 

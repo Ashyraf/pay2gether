@@ -67,7 +67,7 @@ class _LoginState extends State<Login> {
                 logoWidget("assets/images/applogo.png"),
                 SizedBox(height: 30),
                 logRegTextField(
-                  "Enter UserName or Email",
+                  "Enter Email",
                   Icons.person_outline,
                   false,
                   _usernameTextController,

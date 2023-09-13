@@ -1,34 +1,13 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import 'login.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: '',
-      theme: ThemeData(
-        primarySwatch: Colors.grey,
-      ),
-      home: const Register(),
-    );
-  }
-}
+import 'package:pay2gether/Utility/color.dart';
+import 'package:pay2gether/reusable_widget/reuse.dart';
+import 'package:pay2gether/screen/LoginRegister/login.dart';
 
 class Register extends StatefulWidget {
   const Register({Key? key}) : super(key: key);
@@ -44,6 +23,7 @@ class _RegisterState extends State<Register> {
   final _confirmPasswordController = TextEditingController();
   File? _profileImage;
   final ImagePicker _imagePicker = ImagePicker();
+  File? _previewImage;
 
   @override
   void dispose() {
@@ -101,23 +81,6 @@ class _RegisterState extends State<Register> {
     }
   }
 
-  Future<String> uploadProfileImage() async {
-    String imageUrl = '';
-
-    try {
-      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      UploadTask uploadTask = FirebaseStorage.instance
-          .ref('profile_images/$fileName')
-          .putFile(_profileImage!);
-      TaskSnapshot storageSnapshot = await uploadTask.whenComplete(() {});
-      imageUrl = await storageSnapshot.ref.getDownloadURL();
-    } catch (e) {
-      print('Error uploading profile image: $e');
-    }
-
-    return imageUrl;
-  }
-
   bool passwordConfirmed() {
     return _passwordController.text.trim() ==
         _confirmPasswordController.text.trim();
@@ -132,69 +95,137 @@ class _RegisterState extends State<Register> {
     if (pickedImage != null) {
       setState(() {
         _profileImage = File(pickedImage.path);
+        _previewImage = _profileImage;
       });
     }
+  }
+
+  Future<String> uploadProfileImage() async {
+    String imageUrl = '';
+
+    try {
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      UploadTask uploadTask = FirebaseStorage.instance
+          .ref('profile_images/$fileName')
+          .putFile(_profileImage!);
+      TaskSnapshot storageSnapshot = await uploadTask;
+      imageUrl = await storageSnapshot.ref.getDownloadURL();
+    } catch (e) {
+      print('Error uploading profile image: $e');
+    }
+
+    return imageUrl;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Register'),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            if (_profileImage != null)
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              hexStringToColor("50535D"),
+              hexStringToColor("84868D"),
+              hexStringToColor("BCC4BD"),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(height: 80),
               CircleAvatar(
-                radius: 60,
-                backgroundImage: FileImage(_profileImage!),
+                radius: 64,
+                backgroundImage:
+                    _previewImage != null ? FileImage(_previewImage!) : null,
+                child: _previewImage == null
+                    ? Icon(Icons.person, size: 64, color: Colors.grey)
+                    : null,
               ),
-            ElevatedButton(
-              onPressed: pickProfileImage,
-              child: const Text('Pick Image'),
-            ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextField(
-                controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'Username'),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: pickProfileImage,
+                child: const Text('Pick Image'),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: logRegTextField(
+                  "Enter UserName",
+                  Icons.person_outline,
+                  false,
+                  _usernameController,
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
+              SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: logRegTextField(
+                  "Enter Email",
+                  Icons.email_outlined,
+                  false,
+                  _emailController,
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextField(
-                controller: _confirmPasswordController,
-                decoration:
-                    const InputDecoration(labelText: 'Confirm Password'),
-                obscureText: true,
+              SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: logRegTextField(
+                  "Password",
+                  Icons.lock_outline,
+                  true,
+                  _passwordController,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: register,
-              child: const Text('Register'),
-            ),
-          ],
+              SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: logRegTextField(
+                  "Re-Enter Password",
+                  Icons.lock_outline,
+                  true,
+                  _confirmPasswordController,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: register,
+                child: const Text('Register'),
+              ),
+              SizedBox(height: 30),
+              LogInOption(),
+              SizedBox(height: 120),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Row LogInOption() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text("Akready Have An Account??",
+            style: TextStyle(color: Colors.white)),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => Login()),
+            );
+          },
+          child: const Text(
+            "LOG IN NOW!",
+            style: TextStyle(
+              color: Colors.blue,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
