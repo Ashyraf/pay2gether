@@ -34,17 +34,6 @@ class CustomDrawerHeader extends StatelessWidget {
               ),
             ),
           if (isColapsed) const Spacer(),
-          if (isColapsed)
-            Expanded(
-              flex: 1,
-              child: IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.search,
-                  color: Colors.white,
-                ),
-              ),
-            ),
         ],
       ),
     );

@@ -32,8 +32,8 @@ class CustomListTile extends StatelessWidget {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 500),
-        width: isCollapsed ? 300 : 80,
-        height: 80,
+        width: isCollapsed ? 220 : 80,
+        height: 60,
         child: Row(
           children: [
             Expanded(

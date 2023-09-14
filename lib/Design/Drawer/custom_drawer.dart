@@ -20,7 +20,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
       child: AnimatedContainer(
         curve: Curves.easeInOutCubic,
         duration: const Duration(milliseconds: 500),
-        width: drawerState.isCollapsed ? 300 : 90,
+        width: drawerState.isCollapsed ? 260 : 90,
         margin: const EdgeInsets.only(bottom: 10, top: 10),
         decoration: const BoxDecoration(
           borderRadius: BorderRadius.only(
