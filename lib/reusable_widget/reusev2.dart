@@ -113,3 +113,35 @@ Widget reusableToggleButtons({
         .toList(),
   );
 }
+
+PreferredSizeWidget reusableAppBarFriend(
+    GlobalKey<ScaffoldState> scaffoldKey, BuildContext context) {
+  return AppBar(
+    title: logoWidget("assets/images/Paylogo.png"),
+    elevation: 10,
+    shadowColor: Colors.grey,
+    centerTitle: true,
+    backgroundColor: Colors.grey,
+    leading: IconButton(
+      icon: Icon(Icons.menu),
+      onPressed: () {
+        scaffoldKey.currentState?.openDrawer();
+      },
+      color: Colors.black,
+    ),
+    actions: [
+      Builder(
+        builder: (BuildContext context) {
+          return IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              Scaffold.of(context).openEndDrawer();
+            },
+            color: Colors.black,
+            tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+          );
+        },
+      ),
+    ],
+  );
+}
