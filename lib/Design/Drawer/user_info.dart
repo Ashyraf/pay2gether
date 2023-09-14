@@ -83,7 +83,7 @@ class _BottomUserInfoState extends State<BottomUserInfo> {
                               ? NetworkImage(profileImageUrl!)
                               : null,
                           child: profileImageUrl!.isEmpty
-                              ? Icon(Icons.person, size: 64, color: Colors.grey)
+                              ? Icon(Icons.person, size: 20, color: Colors.grey)
                               : null,
                         ),
                       ),
@@ -151,7 +151,7 @@ class _BottomUserInfoState extends State<BottomUserInfo> {
                           ? NetworkImage(profileImageUrl!)
                           : null,
                       child: profileImageUrl!.isEmpty
-                          ? Icon(Icons.person, size: 64, color: Colors.grey)
+                          ? Icon(Icons.person, size: 30, color: Colors.grey)
                           : null,
                     ),
                   ),

@@ -15,22 +15,11 @@ Image logoWidget(String imageName) {
 
 Decoration decorationWithBackground() {
   return BoxDecoration(
-    gradient: LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      stops: const [0.1, 0.4, 0.7, 0.9],
-      colors: [
-        HexColor("#4b4293").withOpacity(0.9),
-        HexColor("#4b4293"),
-        HexColor("#08418e"),
-        HexColor("#08418e")
-      ],
-    ),
     image: DecorationImage(
       fit: BoxFit.cover,
       colorFilter: ColorFilter.mode(
-          HexColor("#fff").withOpacity(0.5), BlendMode.dstATop),
-      image: AssetImage("assets/background.jpg"),
+          HexColor("#fff").withOpacity(0.6), BlendMode.dstATop),
+      image: AssetImage("assets/images/backgroundpay.jpg"),
     ),
   );
 }

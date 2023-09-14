@@ -32,6 +32,7 @@ class _HomePageState extends State<HomePage> {
       appBar: reusableAppBar(_scaffoldKey, context),
       drawer: const CustomDrawer(),
       bottomNavigationBar: NavigationBar(
+        backgroundColor: Colors.grey.withOpacity(0.4),
         onDestinationSelected: (int newIndex) {
           _pageController.animateToPage(
             newIndex,
@@ -43,8 +44,8 @@ class _HomePageState extends State<HomePage> {
         selectedIndex: currentPageIndex,
         destinations: const <Widget>[
           NavigationDestination(
-            selectedIcon: Icon(Icons.room_outlined),
-            icon: Icon(Icons.room_outlined),
+            selectedIcon: Icon(Icons.leaderboard_outlined),
+            icon: Icon(Icons.leaderboard_outlined),
             label: 'Master Room',
           ),
           NavigationDestination(
@@ -53,17 +54,20 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (int newIndex) {
-          setState(() {
-            currentPageIndex = newIndex;
-          });
-        },
-        children: [
-          MasterRoomCard(),
-          RoomCard(),
-        ],
+      body: Container(
+        decoration: decorationWithBackground(),
+        child: PageView(
+          controller: _pageController,
+          onPageChanged: (int newIndex) {
+            setState(() {
+              currentPageIndex = newIndex;
+            });
+          },
+          children: [
+            MasterRoomCard(),
+            RoomCard(),
+          ],
+        ),
       ),
     );
   }

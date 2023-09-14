@@ -24,8 +24,6 @@ class CustomListTile extends StatelessWidget {
         final Map<String, String> routes = {
           'Home': '/home',
           'Friend': '/friend',
-          'Create Room': '/create',
-
           // Add more routes as needed
         };
 

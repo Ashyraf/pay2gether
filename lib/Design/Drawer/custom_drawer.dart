@@ -51,12 +51,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 title: 'Friend',
                 infoCount: 0,
               ),
-              CustomListTile(
-                isCollapsed: drawerState.isCollapsed,
-                icon: Icons.add_home_rounded,
-                title: 'Create Room',
-                infoCount: 8,
-              ),
               const SizedBox(height: 10),
               BottomUserInfo(isCollapsed: drawerState.isCollapsed),
               Align(
