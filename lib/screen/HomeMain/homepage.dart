@@ -1,13 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// ignore_for_file: unused_field
 import 'package:flutter/material.dart';
-import 'package:pay2gether/reusable_widget/reuse.dart';
-import 'package:pay2gether/screen/Friend/friend.dart';
-import 'package:pay2gether/screen/LoginRegister/login.dart';
+import 'package:pay2gether/Design/Drawer/custom_drawer.dart';
+import 'package:pay2gether/reusable_widget/reusev2.dart';
 import 'package:pay2gether/screen/MasterRoom/masterroomcard.dart';
 import 'package:pay2gether/screen/RoomUser/roomcard.dart';
-
-import 'profile_page.dart';
-import 'room.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -17,70 +13,56 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  PreferredSizeWidget appbar(BuildContext context) {
-    return AppBar(
-      title: logoWidget("assets/images/applogosmall.png"),
-      elevation: 0,
-      centerTitle: true,
-      backgroundColor: Colors.grey,
-      leading: IconButton(
-        icon: Icon(Icons.person),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ProfilePage()),
-          );
-        },
-        color: Colors.black,
-      ),
-      actions: [
-        Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              icon: const Icon(Icons.power),
-              onPressed: () {
-                FirebaseAuth.instance.signOut().then((value) {
-                  print("SIGN OUT");
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Login()),
-                  );
-                });
-              },
-              color: Colors.black,
-              tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
-            );
-          },
-        ),
-      ],
-    );
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  List<bool> isSelected = [true, false];
+  int currentPageIndex = 0;
+  late PageController _pageController;
+  late List<Widget> _pages;
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 0);
+    _pages = [MasterRoomCard(), RoomCard()];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appbar(context),
-      body: Column(
+      key: _scaffoldKey,
+      appBar: reusableAppBar(_scaffoldKey, context),
+      drawer: const CustomDrawer(),
+      bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (int newIndex) {
+          _pageController.animateToPage(
+            newIndex,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        },
+        indicatorColor: Color.fromARGB(223, 129, 131, 182),
+        selectedIndex: currentPageIndex,
+        destinations: const <Widget>[
+          NavigationDestination(
+            selectedIcon: Icon(Icons.room_outlined),
+            icon: Icon(Icons.room_outlined),
+            label: 'Master Room',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.dashboard),
+            label: 'Your Room',
+          ),
+        ],
+      ),
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (int newIndex) {
+          setState(() {
+            currentPageIndex = newIndex;
+          });
+        },
         children: [
-          ElevatedButton(
-            child: Text("Friends"),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => Friend()),
-              );
-            },
-          ),
-          SizedBox(height: 16),
-          Expanded(
-            child: MasterRoomCard(),
-          ),
-          SizedBox(height: 16),
-          Expanded(
-            child: RoomCard(),
-          ),
-          SizedBox(height: 16),
-          RoomPage.createRoomButton(context),
+          MasterRoomCard(),
+          RoomCard(),
         ],
       ),
     );

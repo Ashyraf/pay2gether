@@ -48,6 +48,8 @@ dependencies:
   flutter_local_notifications: ^14.1.1
   firebase_messaging: ^14.6.3
   intl: ^0.18.1
+  provider: ^6.0.5
+  shared_preferences: ^2.2.1
   
 
 

@@ -62,7 +62,9 @@ class _MasterRoomCardState extends State<MasterRoomCard> {
         }).toList();
 
         if (filteredData.isEmpty) {
-          return Text('No rooms found for the current user.');
+          return Center(
+            child: Text('No rooms found for the current user.'),
+          );
         }
 
         return ListView.builder(
