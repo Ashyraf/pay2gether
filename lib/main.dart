@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       routes: {
         '/home': (context) => HomePage(), // Example routes
-        '/friend': (context) => Friend(),
+        '/friend': (context) => FriendScreen(),
 
         // Define more routes as needed
       },
