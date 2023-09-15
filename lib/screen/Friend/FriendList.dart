@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,7 +13,6 @@ class Friendlist extends StatefulWidget {
 
 class _FriendlistState extends State<Friendlist> {
   late String currentUserEmail;
-  List<String> _usernames = [];
   List<Map<String, dynamic>> _friendList = [];
 
   @override
@@ -19,25 +20,6 @@ class _FriendlistState extends State<Friendlist> {
     super.initState();
     final user = FirebaseAuth.instance.currentUser;
     currentUserEmail = user != null ? user.email ?? '' : '';
-  }
-
-  Future<void> getCurrentUser() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    currentUserEmail = currentUser?.email ?? '';
-  }
-
-  Future<void> searchUsername(String username) async {
-    final userQuery = await FirebaseFirestore.instance
-        .collection('users')
-        .where('username', isEqualTo: username)
-        .get();
-
-    final usernames =
-        userQuery.docs.map((doc) => doc['username'] as String).toList();
-
-    setState(() {
-      _usernames = usernames;
-    });
   }
 
   Future<void> getFriendList() async {
