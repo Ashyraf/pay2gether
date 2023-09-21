@@ -11,6 +11,7 @@ class FriendRequest extends StatefulWidget {
 
 class _FriendRequestState extends State<FriendRequest> {
   late String currentUserEmail;
+  late String currentUsername;
 
   @override
   void initState() {
@@ -68,19 +69,17 @@ class _FriendRequestState extends State<FriendRequest> {
                   children: [
                     ElevatedButton(
                       onPressed: () async {
-                        final currentUser = FirebaseAuth.instance.currentUser;
-                        final currentUserEmail = currentUser?.email;
-
+                        final currentUserEmail =
+                            FirebaseAuth.instance.currentUser?.email;
+                        final user = FirebaseAuth.instance.currentUser;
+                        final currentUserDisplayName = user!.displayName;
                         if (currentUserEmail != null) {
                           final senderUsername =
                               request['senderUsername'] as String?;
-                          final friendEmail = request['friendEmail'] as String?;
+                          final friendEmail = request['senderEmail'] as String?;
 
                           if (senderUsername != null && friendEmail != null) {
                             try {
-                              print(
-                                  'Accept button pressed'); // Add this line for debugging
-
                               // Create a batch for multiple Firestore operations
                               WriteBatch batch =
                                   FirebaseFirestore.instance.batch();
@@ -93,13 +92,12 @@ class _FriendRequestState extends State<FriendRequest> {
                                   .doc(friendEmail);
 
                               // Remove the friend request from the current user's friendRequests
-                              print(
-                                  'Removing friend request'); // Add this line for debugging
                               batch.update(currentUserRef, {
                                 'friendRequests': FieldValue.arrayRemove([
                                   {
+                                    'receiverEmail': currentUserEmail,
                                     'senderUsername': senderUsername,
-                                    'friendEmail': friendEmail,
+                                    'senderEmail': friendEmail,
                                   }
                                 ])
                               });
@@ -116,24 +114,17 @@ class _FriendRequestState extends State<FriendRequest> {
                                 ])
                               });
 
-                              // Add the current user to the sender's friend list
                               print(
                                   'Adding current user to sender\'s friend list'); // Add this line for debugging
                               batch.update(friendRef, {
                                 'friendLists': FieldValue.arrayUnion([
                                   {
-                                    'friendName': currentUserEmail,
+                                    'friendName': currentUserDisplayName,
                                     'friendEmail': currentUserEmail,
                                   }
                                 ])
                               });
-
-                              // Commit the batch of operations
-                              print(
-                                  'Committing batch'); // Add this line for debugging
                               await batch.commit();
-
-                              // Trigger a rebuild of the widget
                               setState(() {});
                             } catch (error) {
                               print('Error accepting friend request: $error');
