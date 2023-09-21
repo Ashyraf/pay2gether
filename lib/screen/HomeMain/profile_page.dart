@@ -34,8 +34,9 @@ class _ProfilePageState extends State<ProfilePage> {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       String currentUserEmail = user.email!;
+      String? currentUsername = user.displayName;
       DocumentSnapshot<Map<String, dynamic>> userDoc =
-          await _firestore.collection('users').doc(currentUserEmail).get();
+          await _firestore.collection('users').doc(currentUsername).get();
 
       if (userDoc.exists) {
         setState(() {
@@ -64,25 +65,20 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> updateUser() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      String currentUserEmail = user.email!;
+      String? currentUsername = user.displayName;
       String username = _usernameController.text;
       String email = _emailController.text;
 
       // Update username and email in Firestore
-      await _firestore.collection('users').doc(currentUserEmail).set({
+      await _firestore.collection('users').doc(currentUsername).set({
         'username': username,
         'email': email,
       }, SetOptions(merge: true));
 
-      // Update or add bank account information
-      await _firestore.collection('users').doc(currentUserEmail).set({
+      // Save bank account information in the "bankInformation" collection
+      await _firestore.collection('bankInformation').doc(currentUsername).set({
         'bankAccounts': _savedBankAccounts,
       }, SetOptions(merge: true));
-
-      // Save bank account information in the "bankInformation" collection
-      await _firestore.collection('bankInformation').doc(currentUserEmail).set({
-        'bankAccounts': _savedBankAccounts,
-      });
 
       // Reload user data after updating
       await loadUserData();
@@ -101,21 +97,27 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (pickedFile != null) {
       String fileName = 'profile_image.jpg';
-      Reference storageRef = _storage.ref().child('profile_images/$fileName');
-      UploadTask uploadTask = storageRef.putFile(File(pickedFile.path));
+      User? user = FirebaseAuth.instance.currentUser;
 
-      await uploadTask.whenComplete(() async {
-        String profileImageUrl = await storageRef.getDownloadURL();
-        User? user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          String currentUserEmail = user.email!;
-          await _firestore.collection('users').doc(currentUserEmail).update({
+      if (user != null) {
+        String? currentUsername = user.displayName;
+
+        Reference storageRef =
+            _storage.ref().child('profile_images/$currentUsername/$fileName');
+        UploadTask uploadTask = storageRef.putFile(File(pickedFile.path));
+
+        await uploadTask.whenComplete(() async {
+          String profileImageUrl = await storageRef.getDownloadURL();
+
+          // Update the profile image URL in Firestore
+          await _firestore.collection('users').doc(currentUsername).update({
             'profileImageUrl': profileImageUrl,
           });
+
           // Reload user data after updating profile image
           await loadUserData();
-        }
-      });
+        });
+      }
     }
   }
 

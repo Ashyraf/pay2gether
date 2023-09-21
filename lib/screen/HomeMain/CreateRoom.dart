@@ -113,14 +113,14 @@ class _CreateRoomState extends State<CreateRoom> {
           onPressed: () {
             final roomName = roomNameController.text.trim();
             final currentUser = FirebaseAuth.instance.currentUser;
-            final currentUserEmail = currentUser?.email;
+            final currentUsername = currentUser?.displayName;
 
             FirebaseFirestore.instance
                 .collection('debtRoom')
                 .doc(roomName)
                 .set({
               'roomName': roomName,
-              'roomMaster': currentUserEmail,
+              'roomMaster': currentUsername,
               'selectedFriends': selectedFriends.map((friend) {
                 return {
                   'friendName': friend['friendName'],

@@ -9,14 +9,14 @@ class MasterRoomCard extends StatefulWidget {
 }
 
 class _MasterRoomCardState extends State<MasterRoomCard> {
-  late String currentUserEmail;
+  late String currentUsername;
 
   @override
   void initState() {
     super.initState();
     // Get the current user's email
     final user = FirebaseAuth.instance.currentUser;
-    currentUserEmail = user != null ? user.email ?? '' : '';
+    currentUsername = user != null ? user.displayName ?? '' : '';
   }
 
   Widget _buildCircleAvatar(String status) {
@@ -58,7 +58,7 @@ class _MasterRoomCardState extends State<MasterRoomCard> {
         // Filter the snapshot data based on the current user's email
         final filteredData = snapshot.data!.docs.where((doc) {
           final roomMaster = doc['roomMaster'] ?? '';
-          return roomMaster == currentUserEmail;
+          return roomMaster == currentUsername;
         }).toList();
 
         if (filteredData.isEmpty) {

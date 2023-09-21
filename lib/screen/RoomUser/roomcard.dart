@@ -74,10 +74,11 @@ class _RoomCardState extends State<RoomCard> {
           itemBuilder: (context, index) {
             final roomData = filteredData[index].data() as Map<String, dynamic>;
             final roomName = roomData['roomName'] ?? '';
-            final roomMaster = roomData['roomMaster']; // Retrieve roomMaster
+            final roomMaster =
+                roomData['roomMaster'] ?? ''; // Retrieve roomMaster
 
-            // Retrieve bankAccounts from the debtRoom collection
-            final bankAccounts = roomData['bankAccounts'] ?? [];
+            // // Retrieve bankAccounts from the debtRoom collection
+            // final bankAccounts = roomData['bankAccounts'] ?? [];
 
             // Calculate total debt from the selectedFriends
             double totalDebt = 0;
@@ -127,7 +128,7 @@ class _RoomCardState extends State<RoomCard> {
                         builder: (context) => RoomCardExtend(
                           roomData: roomData,
                           roomName: roomName,
-                          bankAccounts: bankAccounts,
+                          // bankAccounts: bankAccounts,
                           roomMaster:
                               roomMaster, // Pass roomMaster to RoomCardExtend
                         ),

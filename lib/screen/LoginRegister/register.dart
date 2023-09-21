@@ -19,6 +19,8 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
   final _emailController = TextEditingController();
   final _usernameController = TextEditingController();
+  final _firstnameController = TextEditingController();
+  final _LastnameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   File? _profileImage;
@@ -29,6 +31,8 @@ class _RegisterState extends State<Register> {
   void dispose() {
     _emailController.dispose();
     _usernameController.dispose();
+    _firstnameController.dispose();
+    _LastnameController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -37,6 +41,38 @@ class _RegisterState extends State<Register> {
   Future<void> register() async {
     if (passwordConfirmed()) {
       try {
+        final String username = _usernameController.text.trim();
+
+        // Check if the username already exists in the "users" collection
+        final QuerySnapshot usernameSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .where('username', isEqualTo: username)
+            .get();
+
+        if (usernameSnapshot.docs.isNotEmpty) {
+          // Username already exists in the "users" collection
+          // Prompt the user to change their username
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Username Already Exists'),
+                content: Text('Please choose a different username.'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+          return; // Exit the function if the username exists
+        }
+
+        // Continue with registration if the username is available
         UserCredential userCredential =
             await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
@@ -44,7 +80,8 @@ class _RegisterState extends State<Register> {
         );
 
         if (userCredential.user != null) {
-          String username = _usernameController.text.trim();
+          String firstname = _firstnameController.text.trim();
+          String lastname = _LastnameController.text.trim();
           String email = _emailController.text.trim();
           String profileImageUrl = '';
 
@@ -62,8 +99,10 @@ class _RegisterState extends State<Register> {
           // Add user details to Firestore
           await FirebaseFirestore.instance
               .collection('users')
-              .doc(email) // Use email as document ID
+              .doc(username) // Use username as document ID
               .set({
+            'firstname': firstname,
+            'lastname': lastname,
             'username': username,
             'email': email,
             'profileImageUrl': profileImageUrl,
@@ -150,6 +189,26 @@ class _RegisterState extends State<Register> {
                 child: const Text('Pick Image'),
               ),
               const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: logRegTextField(
+                  "Enter First Name",
+                  Icons.person_outline,
+                  false,
+                  _firstnameController,
+                ),
+              ),
+              SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: logRegTextField(
+                  "Enter Last Name",
+                  Icons.person_outline,
+                  false,
+                  _LastnameController,
+                ),
+              ),
+              SizedBox(height: 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: logRegTextField(

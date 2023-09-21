@@ -1,9 +1,12 @@
+// ignore_for_file: unused_import
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:pay2gether/Design/Drawer/drawer_state.dart';
 import 'package:pay2gether/auth.dart';
 import 'package:pay2gether/screen/Friend/friend.dart';
 import 'package:pay2gether/screen/HomeMain/homepage.dart';
+import 'package:pay2gether/screen/LoginRegister/login.dart';
 import 'package:pay2gether/screen/MasterRoom/notify.dart';
 import 'package:provider/provider.dart';
 
@@ -37,7 +40,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.grey,
       ),
-      home: const Auth(),
+      home: Login(),
     );
   }
 }

@@ -9,13 +9,15 @@ class TransferPage extends StatefulWidget {
   final String friendName;
   final double debtAmount;
   final String roomName;
-  final List<dynamic> bankAccounts;
+  final String roomMaster;
+  // final List<dynamic> bankAccounts;
 
   TransferPage({
     required this.friendName,
     required this.debtAmount,
     required this.roomName,
-    required this.bankAccounts,
+    required this.roomMaster,
+    // required this.bankAccounts,
   });
 
   @override
@@ -96,6 +98,33 @@ class _TransferPageState extends State<TransferPage> {
     });
   }
 
+  Future<List<dynamic>> fetchBankAccounts() async {
+    final roomMaster = widget.roomMaster;
+    print(' Room Master Username:$roomMaster');
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('bankInformation')
+          .doc(roomMaster)
+          .get();
+
+      if (snapshot.exists) {
+        final data = snapshot.data();
+        final bankAccounts = data?['bankAccounts'] as List<dynamic>;
+
+        // Convert the list of dynamic to List<Map<String, dynamic>>
+        final bankAccountList = bankAccounts
+            .map((account) => account as Map<String, dynamic>)
+            .toList();
+
+        return bankAccountList;
+      }
+    } catch (error) {
+      print('Error fetching bank accounts: $error');
+    }
+
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,34 +138,49 @@ class _TransferPageState extends State<TransferPage> {
           children: [
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: widget.bankAccounts.length,
-                itemBuilder: (context, index) {
-                  final account = widget.bankAccounts[index];
-                  return Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('Bank Name: ${account['bankName']}'),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(' ${account['accountNumber']}'),
-                          IconButton(
-                            icon: Icon(Icons.copy),
-                            onPressed: () {
-                              _copyToClipboard(account['accountNumber']);
-                            },
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                    ],
-                  );
+              child: StreamBuilder<List<dynamic>>(
+                stream: Stream.fromFuture(fetchBankAccounts()),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator(); // Loading indicator while fetching data
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else {
+                    final bankAccounts = snapshot.data ?? [];
+
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: bankAccounts.length,
+                      separatorBuilder: (context, index) =>
+                          Divider(), // Add a divider between items
+                      itemBuilder: (context, index) {
+                        final account = bankAccounts[index];
+                        return Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('Bank Name: ${account['bankName']}'),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(' ${account['accountNumber']}'),
+                                IconButton(
+                                  icon: Icon(Icons.copy),
+                                  onPressed: () {
+                                    _copyToClipboard(account['accountNumber']);
+                                  },
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 16),
+                          ],
+                        );
+                      },
+                    );
+                  }
                 },
               ),
             ),

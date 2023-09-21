@@ -39,6 +39,14 @@ class _BottomUserInfoState extends State<BottomUserInfo> {
           _username = userDoc.data()?['username'] as String? ?? '';
           profileImageUrl = userDoc.data()?['profileImageUrl'] as String? ?? '';
         });
+      } else {
+        // User document does not exist, display a white circle or default image
+        setState(() {
+          _username = userDoc.data()?['username'] as String? ?? '';
+          // Set username to empty or a default value
+          profileImageUrl =
+              "assets/images/noprofileimage.png"; // Set profileImageUrl to empty or a default URL
+        });
       }
     }
   }
@@ -47,7 +55,7 @@ class _BottomUserInfoState extends State<BottomUserInfo> {
     final username = _username;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      height: widget.isCollapsed ? 70 : 100,
+      height: widget.isCollapsed ? 100 : 150,
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white10,
@@ -70,20 +78,16 @@ class _BottomUserInfoState extends State<BottomUserInfo> {
                         );
                       },
                       child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 10),
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.grey,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                        margin: const EdgeInsets.only(top: 10),
+                        width: 60,
+                        height: 60,
                         child: CircleAvatar(
-                          radius: 10,
+                          radius: 20,
                           backgroundImage: profileImageUrl!.isNotEmpty
                               ? NetworkImage(profileImageUrl!)
                               : null,
                           child: profileImageUrl!.isEmpty
-                              ? Icon(Icons.person, size: 20, color: Colors.grey)
+                              ? Icon(Icons.person, size: 30, color: Colors.grey)
                               : null,
                         ),
                       ),
@@ -139,12 +143,8 @@ class _BottomUserInfoState extends State<BottomUserInfo> {
                 Expanded(
                   child: Container(
                     margin: const EdgeInsets.only(top: 10),
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
+                    width: 60,
+                    height: 60,
                     child: CircleAvatar(
                       radius: 20,
                       backgroundImage: profileImageUrl!.isNotEmpty

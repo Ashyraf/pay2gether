@@ -47,11 +47,11 @@ PreferredSizeWidget reusableAppBar(
           ),
           onPressed: () {
             final currentUser = FirebaseAuth.instance.currentUser;
-            final currentUserEmail = currentUser?.email;
+            final currentUsername = currentUser?.displayName;
 
             FirebaseFirestore.instance
                 .collection('users')
-                .doc(currentUserEmail)
+                .doc(currentUsername)
                 .get()
                 .then((userSnapshot) {
               final bankAccounts = userSnapshot.data()?['bankAccounts'];

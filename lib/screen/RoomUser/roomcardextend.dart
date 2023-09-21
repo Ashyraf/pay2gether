@@ -9,13 +9,13 @@ import 'report.dart';
 class RoomCardExtend extends StatefulWidget {
   final Map<String, dynamic> roomData;
   final String roomName;
-  final List<dynamic> bankAccounts;
+  // final List<dynamic> bankAccounts;
   final String roomMaster;
 
   const RoomCardExtend({
     required this.roomData,
     required this.roomName,
-    required this.bankAccounts,
+    // required this.bankAccounts,
     required this.roomMaster,
   });
 
@@ -25,7 +25,8 @@ class RoomCardExtend extends StatefulWidget {
 
 class _RoomCardExtendState extends State<RoomCardExtend> {
   late String currentUser;
-  String roomMasterUsername = '';
+  String roomMasterEmail = '';
+  String roomMaster = '';
   bool isVerificationPending = false;
   bool isPaymentDone = false;
   late StreamSubscription<DocumentSnapshot> statusSubscription;
@@ -34,7 +35,6 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
   void initState() {
     super.initState();
     fetchCurrentUser();
-    fetchRoomMasterUsername();
 
     // Check if a meet-up or payment has been done
     if (widget.roomData['Payment'] != null) {
@@ -96,26 +96,12 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
     }
   }
 
-  void fetchRoomMasterUsername() async {
-    final roomMasterEmail = widget.roomMaster;
-    final snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .where('email', isEqualTo: roomMasterEmail)
-        .get();
-
-    if (snapshot.docs.isNotEmpty) {
-      final roomMasterData = snapshot.docs.first.data();
-      setState(() {
-        roomMasterUsername = roomMasterData['username'] ?? '';
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final roomData = widget.roomData;
     final roomName = widget.roomName;
-    final bankAccounts = widget.bankAccounts;
+    final roomMaster = widget.roomMaster;
+    // final bankAccounts = widget.bankAccounts;
     final selectedFriends = roomData['selectedFriends'] as List<dynamic>;
 
     return Scaffold(
@@ -128,7 +114,7 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Room Master: $roomMasterUsername',
+              'Room Master: $roomMaster',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
@@ -145,21 +131,21 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
               ),
             ),
           ),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: bankAccounts.length,
-            itemBuilder: (context, index) {
-              final account = bankAccounts[index];
-              final bankName = account['bankName'];
-              final accountNumber = account['accountNumber'];
+          // ListView.builder(
+          //   shrinkWrap: true,
+          //   physics: NeverScrollableScrollPhysics(),
+          //   itemCount: bankAccounts.length,
+          //   itemBuilder: (context, index) {
+          //     final account = bankAccounts[index];
+          //     final bankName = account['bankName'];
+          //     final accountNumber = account['accountNumber'];
 
-              return ListTile(
-                title: Text('Account Name: $bankName'),
-                subtitle: Text('Account Number: $accountNumber'),
-              );
-            },
-          ),
+          //     return ListTile(
+          //       title: Text('Account Name: $bankName'),
+          //       subtitle: Text('Account Number: $accountNumber'),
+          //     );
+          //   },
+          // ),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
@@ -229,8 +215,12 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
                                       ElevatedButton(
                                         child: Text('Payment'),
                                         onPressed: () {
-                                          _showPaymentDialog(context, roomName,
-                                              friendName, debtAmount);
+                                          _showPaymentDialog(
+                                              context,
+                                              roomName,
+                                              friendName,
+                                              debtAmount,
+                                              roomMaster);
                                         },
                                       ),
                                       SizedBox(width: 8),
@@ -293,7 +283,7 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
   }
 
   void _showPaymentDialog(BuildContext context, String roomName,
-      String friendName, double debtAmount) {
+      String friendName, double debtAmount, String roomMaster) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -328,7 +318,8 @@ class _RoomCardExtendState extends State<RoomCardExtend> {
                         roomName: roomName,
                         friendName: friendName,
                         debtAmount: debtAmount,
-                        bankAccounts: widget.bankAccounts,
+                        roomMaster: roomMaster,
+                        // bankAccounts: widget.bankAccounts,
                       ),
                     ),
                   );
