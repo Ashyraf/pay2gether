@@ -10,14 +10,13 @@ class FriendRequest extends StatefulWidget {
 }
 
 class _FriendRequestState extends State<FriendRequest> {
-  late String currentUserEmail;
   late String currentUsername;
 
   @override
   void initState() {
     super.initState();
     final user = FirebaseAuth.instance.currentUser;
-    currentUserEmail = user != null ? user.email ?? '' : '';
+    currentUsername = user != null ? user.displayName ?? '' : '';
   }
 
   @override
@@ -25,7 +24,7 @@ class _FriendRequestState extends State<FriendRequest> {
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('friends')
-          .doc(currentUserEmail)
+          .doc(currentUsername)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
@@ -69,10 +68,11 @@ class _FriendRequestState extends State<FriendRequest> {
                   children: [
                     ElevatedButton(
                       onPressed: () async {
+                        final currentUsername =
+                            FirebaseAuth.instance.currentUser?.displayName;
                         final currentUserEmail =
                             FirebaseAuth.instance.currentUser?.email;
-                        final user = FirebaseAuth.instance.currentUser;
-                        final currentUserDisplayName = user!.displayName;
+
                         if (currentUserEmail != null) {
                           final senderUsername =
                               request['senderUsername'] as String?;
@@ -86,10 +86,10 @@ class _FriendRequestState extends State<FriendRequest> {
 
                               final currentUserRef = FirebaseFirestore.instance
                                   .collection('friends')
-                                  .doc(currentUserEmail);
+                                  .doc(currentUsername);
                               final friendRef = FirebaseFirestore.instance
                                   .collection('friends')
-                                  .doc(friendEmail);
+                                  .doc(senderUsername);
 
                               // Remove the friend request from the current user's friendRequests
                               batch.update(currentUserRef, {
@@ -119,7 +119,7 @@ class _FriendRequestState extends State<FriendRequest> {
                               batch.update(friendRef, {
                                 'friendLists': FieldValue.arrayUnion([
                                   {
-                                    'friendName': currentUserDisplayName,
+                                    'friendName': currentUsername,
                                     'friendEmail': currentUserEmail,
                                   }
                                 ])
@@ -141,16 +141,15 @@ class _FriendRequestState extends State<FriendRequest> {
                         // Implement the logic to reject the friend request
                         // For example, you can remove the request from the friendRequests list
 
-                        final currentUserEmail =
-                            FirebaseAuth.instance.currentUser?.email;
+                        final currentUsername =
+                            FirebaseAuth.instance.currentUser?.displayName;
                         final senderUsername =
                             request['senderUsername'] as String?;
 
-                        if (currentUserEmail != null &&
-                            senderUsername != null) {
+                        if (currentUsername != null && senderUsername != null) {
                           final userRef = FirebaseFirestore.instance
                               .collection('friends')
-                              .doc(currentUserEmail);
+                              .doc(currentUsername);
 
                           await FirebaseFirestore.instance
                               .runTransaction((transaction) async {

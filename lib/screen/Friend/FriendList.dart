@@ -12,23 +12,23 @@ class Friendlist extends StatefulWidget {
 }
 
 class _FriendlistState extends State<Friendlist> {
-  late String currentUserEmail;
+  late String currentUsername;
   List<Map<String, dynamic>> _friendList = [];
 
   @override
   void initState() {
     super.initState();
     final user = FirebaseAuth.instance.currentUser;
-    currentUserEmail = user != null ? user.email ?? '' : '';
+    currentUsername = user != null ? user.displayName ?? '' : '';
   }
 
   Future<void> getFriendList() async {
     final currentUser = FirebaseAuth.instance.currentUser;
-    final currentUserEmail = currentUser?.email;
+    final currentUsername = currentUser?.displayName;
 
     final userDoc = await FirebaseFirestore.instance
         .collection('friends')
-        .doc(currentUserEmail)
+        .doc(currentUsername)
         .get();
 
     if (userDoc.exists) {
@@ -48,7 +48,7 @@ class _FriendlistState extends State<Friendlist> {
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('friends')
-          .doc(currentUserEmail)
+          .doc(currentUsername)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
