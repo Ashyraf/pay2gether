@@ -177,6 +177,41 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
   final _itemCostController = TextEditingController();
 
   List<Map<String, dynamic>> debtDetails = [];
+  String? selectedFriendName;
+  List<String> friendNames = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchFriendNames();
+  }
+
+  Future<void> fetchFriendNames() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final currentUsername = currentUser?.displayName;
+
+    final docSnapshot = await FirebaseFirestore.instance
+        .collection('friends')
+        .doc(currentUsername)
+        .get();
+
+    final friendList = docSnapshot.data()?['friendLists'];
+
+    setState(() {
+      friendNames = friendList != null
+          ? (friendList as List<dynamic>)
+              .map((item) => item['friendName'].toString())
+              .toList()
+          : [];
+    });
+
+    if (friendNames.isNotEmpty) {
+      setState(() {
+        selectedFriendName =
+            friendNames[0]; // Set the initial selected friend name
+      });
+    }
+  }
 
   void addDebtDetail() {
     final item = _itemController.text.trim();
@@ -220,11 +255,22 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        TextField(
+        DropdownButtonFormField(
+          value: selectedFriendName,
+          onChanged: (newValue) {
+            setState(() {
+              selectedFriendName = newValue as String?;
+            });
+          },
+          items: friendNames.map((friendName) {
+            return DropdownMenuItem(
+              value: friendName,
+              child: Text(friendName),
+            );
+          }).toList(),
           decoration: InputDecoration(
-            hintText: 'Friend Name',
+            labelText: 'Select a Friend',
           ),
-          controller: _friendNameController,
         ),
         SizedBox(height: 16),
         ListView.builder(
