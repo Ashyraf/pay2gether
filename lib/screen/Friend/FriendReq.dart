@@ -1,9 +1,11 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FriendRequest extends StatefulWidget {
-  const FriendRequest({super.key});
+  const FriendRequest({Key? key});
 
   @override
   State<FriendRequest> createState() => _FriendRequestState();
@@ -11,16 +13,44 @@ class FriendRequest extends StatefulWidget {
 
 class _FriendRequestState extends State<FriendRequest> {
   late String currentUsername;
+  List<Map<String, dynamic>> _friendRequests = [];
 
   @override
   void initState() {
     super.initState();
     final user = FirebaseAuth.instance.currentUser;
     currentUsername = user != null ? user.displayName ?? '' : '';
+    getFriendRequest();
+  }
+
+  Future<void> getFriendRequest() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final currentUsername = currentUser?.displayName;
+
+    final userDoc = await FirebaseFirestore.instance
+        .collection('friends')
+        .doc(currentUsername)
+        .get();
+
+    if (userDoc.exists) {
+      final data = userDoc.data();
+      if (data != null && data.containsKey('friendRequests')) {
+        final friendRequests = data['friendRequests'] as List<dynamic>;
+
+        setState(() {
+          _friendRequests = friendRequests.cast<Map<String, dynamic>>();
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_friendRequests.isEmpty) {
+      // If the friend list is empty, return nothing.
+      return SizedBox.shrink();
+    }
+
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('friends')
@@ -37,16 +67,12 @@ class _FriendRequestState extends State<FriendRequest> {
 
         final userDocument = snapshot.data;
 
-        if (!userDocument!.exists) {
+        final friendRequests =
+            userDocument!['friendRequests'] as List<dynamic>?;
+
+        if (friendRequests == null || friendRequests.isEmpty) {
           return Text('No friend requests');
         }
-
-        final friendRequests = userDocument['friendRequests'] as List<dynamic>;
-
-        if (friendRequests.isEmpty) {
-          return Text('No friend requests');
-        }
-
         return ListView.builder(
           shrinkWrap: true,
           itemCount: friendRequests.length,
@@ -95,7 +121,7 @@ class _FriendRequestState extends State<FriendRequest> {
                               batch.update(currentUserRef, {
                                 'friendRequests': FieldValue.arrayRemove([
                                   {
-                                    'receiverEmail': currentUserEmail,
+                                    'receiverUsername': currentUsername,
                                     'senderUsername': senderUsername,
                                     'senderEmail': friendEmail,
                                   }
@@ -103,8 +129,6 @@ class _FriendRequestState extends State<FriendRequest> {
                               });
 
                               // Add sender to the current user's friend list
-                              print(
-                                  'Adding sender to current user\'s friend list'); // Add this line for debugging
                               batch.update(currentUserRef, {
                                 'friendLists': FieldValue.arrayUnion([
                                   {
@@ -114,16 +138,26 @@ class _FriendRequestState extends State<FriendRequest> {
                                 ])
                               });
 
-                              print(
-                                  'Adding current user to sender\'s friend list'); // Add this line for debugging
-                              batch.update(friendRef, {
-                                'friendLists': FieldValue.arrayUnion([
-                                  {
-                                    'friendName': currentUsername,
-                                    'friendEmail': currentUserEmail,
-                                  }
-                                ])
-                              });
+                              // Check if the document for senderUsername exists
+                              final senderDocRef = FirebaseFirestore.instance
+                                  .collection('friends')
+                                  .doc(senderUsername);
+
+                              final senderDoc = await senderDocRef.get();
+
+                              if (!senderDoc.exists) {
+                                // Create a document for the sender
+                                batch.set(senderDocRef, {
+                                  'friendLists': [
+                                    {
+                                      'friendName': currentUsername,
+                                      'friendEmail': currentUserEmail,
+                                    }
+                                  ],
+                                  // You can add other fields as needed
+                                });
+                              }
+
                               await batch.commit();
                               setState(() {});
                             } catch (error) {

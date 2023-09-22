@@ -30,9 +30,9 @@ class _BottomUserInfoState extends State<BottomUserInfo> {
   Future<void> loadUserData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      String currentUserEmail = user.email!;
+      String currentUsername = user.displayName!;
       DocumentSnapshot<Map<String, dynamic>> userDoc =
-          await _firestore.collection('users').doc(currentUserEmail).get();
+          await _firestore.collection('users').doc(currentUsername).get();
 
       if (userDoc.exists) {
         setState(() {

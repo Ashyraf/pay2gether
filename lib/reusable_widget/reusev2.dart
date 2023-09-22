@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pay2gether/screen/HomeMain/CreateRoom.dart';
+import 'package:pay2gether/screen/Searchfriend/searchFriend.dart';
 import '../Design/Hex_Color.dart';
 
 Image logoWidget(String imageName) {
@@ -50,7 +51,7 @@ PreferredSizeWidget reusableAppBar(
             final currentUsername = currentUser?.displayName;
 
             FirebaseFirestore.instance
-                .collection('users')
+                .collection('bankInformation')
                 .doc(currentUsername)
                 .get()
                 .then((userSnapshot) {
@@ -135,7 +136,10 @@ PreferredSizeWidget reusableAppBarFriend(
           return IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              Scaffold.of(context).openEndDrawer();
+              showSearch(
+                context: context,
+                delegate: searchFriend(),
+              );
             },
             color: Colors.black,
             tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,

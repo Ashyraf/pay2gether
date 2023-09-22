@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:pay2gether/CustomLoader.dart';
 import 'package:pay2gether/Utility/color.dart';
 import 'package:pay2gether/reusable_widget/reuse.dart';
 import 'package:pay2gether/screen/HomeMain/homepage.dart';
@@ -95,6 +96,14 @@ class _LoginState extends State<Login> {
 
                         setState(() {
                           _isLoading = true;
+                          showDialog(
+                            context: context,
+                            barrierDismissible:
+                                false, // Prevent user from dismissing the dialog
+                            builder: (BuildContext context) {
+                              return LoadingScreen();
+                            },
+                          );
                         });
 
                         try {
@@ -120,7 +129,7 @@ class _LoginState extends State<Login> {
                             _isLoading = false;
                           });
 
-                          showErrorDialog("An error occurred: $error");
+                          showErrorDialog("Wrong Email Or Password !!");
                         }
                       }),
                 registerOption(),

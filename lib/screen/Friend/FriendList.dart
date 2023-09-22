@@ -20,6 +20,7 @@ class _FriendlistState extends State<Friendlist> {
     super.initState();
     final user = FirebaseAuth.instance.currentUser;
     currentUsername = user != null ? user.displayName ?? '' : '';
+    getFriendList(); // Call this method to populate the friend list.
   }
 
   Future<void> getFriendList() async {
@@ -45,6 +46,11 @@ class _FriendlistState extends State<Friendlist> {
 
   @override
   Widget build(BuildContext context) {
+    if (_friendList.isEmpty) {
+      // If the friend list is empty, return nothing.
+      return SizedBox.shrink();
+    }
+
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('friends')
@@ -83,14 +89,11 @@ class _FriendlistState extends State<Friendlist> {
             }
 
             return Card(
-              elevation:
-                  3, // You can adjust the elevation to add shadow to the card.
-              margin: EdgeInsets.symmetric(
-                  vertical: 8, horizontal: 16), // Adjust margins as needed.
+              elevation: 3,
+              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               child: ListTile(
                 title: Text(friendName),
                 subtitle: Text(friendEmail),
-                // You can add more widgets to customize the friend list items as needed
               ),
             );
           },

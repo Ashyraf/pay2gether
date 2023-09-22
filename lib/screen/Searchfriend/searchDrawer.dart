@@ -7,8 +7,6 @@ class SearchDrawer extends StatefulWidget {
     required this.usernames,
     required this.onUsernameChanged,
     required this.onFriendRequest,
-    required this.onAcceptRequest,
-    required this.onRejectRequest,
     required this.currentUserID,
   }) : super(key: key);
 
@@ -16,8 +14,6 @@ class SearchDrawer extends StatefulWidget {
   final List<String> usernames;
   final Function(String) onUsernameChanged;
   final Function(String) onFriendRequest;
-  final Function(String, String) onAcceptRequest;
-  final Function(String) onRejectRequest;
   final String currentUserID;
 
   @override

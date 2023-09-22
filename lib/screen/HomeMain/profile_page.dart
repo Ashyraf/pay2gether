@@ -45,9 +45,16 @@ class _ProfilePageState extends State<ProfilePage> {
           _emailController.text = currentUserEmail;
           _profileImageUrl =
               userDoc.data()?['profileImageUrl'] as String? ?? '';
-
-          // Handle the dynamic type of bankAccounts field
-          var bankAccounts = userDoc.data()?['bankAccounts'];
+        });
+      }
+      // Handle the dynamic type of bankAccounts field
+      DocumentSnapshot<Map<String, dynamic>> bankDocument = await _firestore
+          .collection('bankInformation')
+          .doc(currentUsername)
+          .get();
+      if (bankDocument.exists) {
+        setState(() {
+          var bankAccounts = bankDocument.data()?['bankAccounts'];
           if (bankAccounts != null && bankAccounts is List<dynamic>) {
             _savedBankAccounts = List<Map<String, String>>.from(
               bankAccounts.map<Map<String, String>>(

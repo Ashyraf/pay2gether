@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pay2gether/CustomLoader.dart';
 import 'package:pay2gether/Utility/color.dart';
 import 'package:pay2gether/reusable_widget/reuse.dart';
 import 'package:pay2gether/screen/LoginRegister/login.dart';
@@ -71,6 +72,19 @@ class _RegisterState extends State<Register> {
           );
           return; // Exit the function if the username exists
         }
+        showDialog(
+          context: context,
+          barrierDismissible: false, // Prevent user from dismissing the dialog
+          builder: (BuildContext context) {
+            return LoadingScreen();
+          },
+        );
+
+        // Simulate a registration process
+        await Future.delayed(Duration(seconds: 5));
+
+        // After registration is complete, close the loading screen
+        Navigator.of(context).pop(); // This will close the dialog
 
         // Continue with registration if the username is available
         UserCredential userCredential =
@@ -82,6 +96,7 @@ class _RegisterState extends State<Register> {
         if (userCredential.user != null) {
           String firstname = _firstnameController.text.trim();
           String lastname = _LastnameController.text.trim();
+          String username = _usernameController.text.trim();
           String email = _emailController.text.trim();
           String profileImageUrl = '';
 
