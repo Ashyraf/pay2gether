@@ -314,9 +314,9 @@ class _AddPeopleFormState extends State<AddPeopleForm> {
         SizedBox(height: 16),
         ElevatedButton(
           onPressed: () {
-            final friendName = _friendNameController.text.trim();
+            final friendName = selectedFriendName;
 
-            if (friendName.isNotEmpty && debtDetails.isNotEmpty) {
+            if (friendName!.isNotEmpty && debtDetails.isNotEmpty) {
               final friend = {
                 'friendName': friendName,
                 'debtAmount': debtDetails.fold(
