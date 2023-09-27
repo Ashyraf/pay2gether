@@ -27,67 +27,99 @@ class searchFriend extends SearchDelegate {
 
   @override
   Widget buildResults(BuildContext context) {
-    return FutureBuilder<QuerySnapshot>(
-      future: FirebaseFirestore.instance
-          .collection('users')
-          .where('username', isGreaterThanOrEqualTo: query)
-          .where('username', isLessThanOrEqualTo: query + '\uf8ff')
-          .get(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Text('No results found.');
-        } else {
-          final usernames = snapshot.data!.docs
-              .map((doc) => doc['username'] as String)
-              .where((username) =>
-                  username !=
-                  FirebaseAuth.instance.currentUser
-                      ?.displayName) // Exclude current user's username
-              .toList();
-          return ListView.builder(
-            itemBuilder: (context, index) {
-              final result = usernames[index];
-              return FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(result) // Assuming 'result' is the username
-                    .get(),
-                builder: (context, userSnapshot) {
-                  if (userSnapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  } else if (userSnapshot.hasError) {
-                    return Text('Error: ${userSnapshot.error}');
-                  } else if (!userSnapshot.hasData) {
-                    return SizedBox.shrink(); // No user data found
-                  } else {
-                    final profileImageUrl =
-                        userSnapshot.data!['profileImageUrl'] as String;
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: profileImageUrl.isEmpty
-                            ? null
-                            : NetworkImage(profileImageUrl),
-                        backgroundColor: Colors.white,
-                      ),
-                      title: Text(result),
-                      trailing: ElevatedButton(
-                        onPressed: () {
-                          sendFriendRequest(result);
-                        },
-                        child: Text('Request'),
-                      ),
-                    );
-                  }
-                },
-              );
-            },
-            itemCount: usernames.length,
-          );
+    // Fetch the current user's friend list
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('friends')
+          .doc(FirebaseAuth.instance.currentUser?.displayName)
+          .snapshots(),
+      builder: (context, friendSnapshot) {
+        if (friendSnapshot.hasError) {
+          return Text('Error: ${friendSnapshot.error}');
         }
+
+        if (friendSnapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+
+        final userDocument = friendSnapshot.data;
+
+        if (!userDocument!.exists) {
+          return Text('No friends yet.');
+        }
+
+        final friends = (userDocument['friendLists'] as List<dynamic>)
+            .map((friend) =>
+                friend['friendName'] as String) // Extract friend names
+            .toList();
+
+        return FutureBuilder<QuerySnapshot>(
+          future: FirebaseFirestore.instance
+              .collection('users')
+              .where('username', isGreaterThanOrEqualTo: query)
+              .where('username', isLessThanOrEqualTo: query + '\uf8ff')
+              .get(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Text('No results found.');
+            } else {
+              final usernames = snapshot.data!.docs
+                  .map((doc) => doc['username'] as String)
+                  .toList();
+              // Exclude usernames that are friends or the current user's username
+              final filteredUsernames = usernames
+                  .where((username) =>
+                      username !=
+                          FirebaseAuth.instance.currentUser?.displayName &&
+                      !friends.contains(username))
+                  .toList();
+              return ListView.builder(
+                itemBuilder: (context, index) {
+                  final result = filteredUsernames[index];
+                  return FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(result) // Assuming 'result' is the username
+                        .get(),
+                    builder: (context, userSnapshot) {
+                      if (userSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      } else if (userSnapshot.hasError) {
+                        return Text('Error: ${userSnapshot.error}');
+                      } else if (!userSnapshot.hasData) {
+                        return SizedBox.shrink(); // No user data found
+                      } else {
+                        final profileImageUrl =
+                            userSnapshot.data!['profileImageUrl'] as String;
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: profileImageUrl.isEmpty
+                                ? null
+                                : NetworkImage(profileImageUrl),
+                            backgroundColor: Colors.white,
+                          ),
+                          title: Text(result),
+                          trailing: ElevatedButton(
+                            onPressed: () {
+                              sendFriendRequest(result);
+                            },
+                            child: Text('Request'),
+                          ),
+                        );
+                      }
+                    },
+                  );
+                },
+                itemCount: filteredUsernames.length,
+              );
+            }
+          },
+        );
       },
     );
   }
