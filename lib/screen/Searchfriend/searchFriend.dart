@@ -43,6 +43,10 @@ class searchFriend extends SearchDelegate {
         } else {
           final usernames = snapshot.data!.docs
               .map((doc) => doc['username'] as String)
+              .where((username) =>
+                  username !=
+                  FirebaseAuth.instance.currentUser
+                      ?.displayName) // Exclude current user's username
               .toList();
           return ListView.builder(
             itemBuilder: (context, index) {
@@ -153,3 +157,13 @@ class searchFriend extends SearchDelegate {
     });
   }
 }
+
+
+// 2. another one is that check
+// from the collection (friends) 
+//doc (current user) there is a field array friendLists 
+//containing map of friendName and friendEmail inside the doc 
+//of the currentUser. just get the friendName. if there is friendName 
+//and the search user exist then the request button will chnage to Friend and
+// cannot 
+//be pressed.
