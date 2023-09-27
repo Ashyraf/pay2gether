@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DrawerState extends ChangeNotifier {
-  bool _isCollapsed = false;
+  bool _isCollapsed = true;
 
   bool get isCollapsed => _isCollapsed;
 
